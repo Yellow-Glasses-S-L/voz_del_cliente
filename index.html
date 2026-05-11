@@ -357,6 +357,14 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
 
       <!-- TAB: ALERTAS -->
       <div id="tab-alertas" class="hidden space-y-6">
+        <!-- P0 Guest Alerts -->
+        <div id="guestAlertSection" class="hidden">
+          <h3 class="font-semibold mb-3 flex items-center gap-2">
+            <span class="animate-pulse">🚨</span> Incidentes de huéspedes — Acción inmediata
+            <span class="text-xs font-normal text-red-400">— Contacto directo requerido</span>
+          </h3>
+          <div id="guestAlertsList" class="space-y-2"></div>
+        </div>
         <!-- Alerts list -->
         <div>
           <h3 class="font-semibold mb-3 text-white/80">Alertas operativas</h3>
@@ -716,10 +724,10 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       }
       // Alert badges next to score
       const badgesRow = document.getElementById('alertBadgesRow');
-      const alertCounts = { P1: 0, P2: 0, P3: 0, P4: 0 };
+      const alertCounts = { P0: 0, P1: 0, P2: 0, P3: 0, P4: 0 };
       alerts.forEach(a => alertCounts[a.priority] = (alertCounts[a.priority] || 0) + 1);
-      const badgeColors = { P1: 'bg-red-500', P2: 'bg-orange-500', P3: 'bg-yellow-500', P4: 'bg-green-500' };
-      const badgeIcons = { P1: '🔴', P2: '🟠', P3: '🟡', P4: '🟢' };
+      const badgeColors = { P0: 'bg-red-700', P1: 'bg-red-500', P2: 'bg-orange-500', P3: 'bg-yellow-500', P4: 'bg-green-500' };
+      const badgeIcons = { P0: '🚨', P1: '🔴', P2: '🟠', P3: '🟡', P4: '🟢' };
       badgesRow.innerHTML = Object.entries(alertCounts).filter(([,n]) => n > 0)
         .map(([p, n]) => `<span class="flex items-center gap-1 text-xs ${badgeColors[p]} px-2 py-1 rounded-full">${badgeIcons[p]} ${n}</span>`).join('');
       // Also update tab badge
@@ -769,24 +777,41 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       }).join('');
 
       // Alerts — compact cards
-      const alertBorderColor = { P1: '#ef4444', P2: '#f97316', P3: '#eab308', P4: '#22c55e' };
-      const alertTime = { P1: '< 2h', P2: '< 24h', P3: '72h', P4: '' };
-      const alertIconMap = { P1: '🔴', P2: '🟠', P3: '🟡', P4: '🟢' };
+      const alertBorderColor = { P0: '#dc2626', P1: '#ef4444', P2: '#f97316', P3: '#eab308', P4: '#22c55e' };
+      const alertTime = { P0: 'AHORA', P1: '< 2h', P2: '< 24h', P3: '72h', P4: '' };
+      const alertIconMap = { P0: '🚨', P1: '🔴', P2: '🟠', P3: '🟡', P4: '🟢' };
       detailData.alerts = alerts;
-      const alertsEl = document.getElementById('alertsList');
-      if (alerts.length > 0) {
-        alertsEl.innerHTML = alerts.map((a, idx) => `
+      function buildAlertCard(a, idx) {
+        return `
           <div onclick="showAlertDetail(${idx})" class="glass rounded-xl px-4 py-3 border-l-4 flex items-center gap-3 cursor-pointer hover:bg-white/5 transition group" style="border-color:${alertBorderColor[a.priority] || '#eab308'}">
             <span class="text-lg flex-shrink-0">${alertIconMap[a.priority] || '🟡'}</span>
             <div class="flex-1 min-w-0">
-              <div class="font-semibold text-sm">${a.title}</div>
+              <div class="font-semibold text-sm flex items-center gap-2 flex-wrap">
+                ${a.title}
+                ${a.priority === 'P0' ? '<span class="text-xs font-bold px-2 py-0.5 rounded-full bg-red-600 text-white animate-pulse">URGENTE</span>' : ''}
+              </div>
               <div class="text-white/40 text-xs mt-0.5 line-clamp-2">${a.summary}</div>
+              ${a.guest_name ? `<div class="mt-1"><span class="text-xs bg-white/10 px-2 py-0.5 rounded-full text-white/60">👤 ${a.guest_name}</span></div>` : ''}
             </div>
             <div class="flex items-center gap-2 flex-shrink-0">
               ${alertTime[a.priority] ? `<span class="text-xs font-medium px-2 py-0.5 rounded-full" style="background:${alertBorderColor[a.priority]}20;color:${alertBorderColor[a.priority]}">${alertTime[a.priority]}</span>` : ''}
               <span class="text-white/20 group-hover:text-white/50 transition text-sm">→</span>
             </div>
-          </div>`).join('');
+          </div>`;
+      }
+      const p0Alerts = alerts.filter(a => a.priority === 'P0');
+      const otherAlerts = alerts.filter(a => a.priority !== 'P0');
+      const guestAlertSection = document.getElementById('guestAlertSection');
+      const guestAlertsList = document.getElementById('guestAlertsList');
+      const alertsEl = document.getElementById('alertsList');
+      if (p0Alerts.length > 0) {
+        guestAlertSection.classList.remove('hidden');
+        guestAlertsList.innerHTML = p0Alerts.map(a => buildAlertCard(a, alerts.indexOf(a))).join('');
+      } else {
+        guestAlertSection.classList.add('hidden');
+      }
+      if (otherAlerts.length > 0) {
+        alertsEl.innerHTML = otherAlerts.map(a => buildAlertCard(a, alerts.indexOf(a))).join('');
       }
 
       // Felicitaciones
@@ -923,9 +948,9 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
     function showAlertDetail(idx) {
       const a = detailData.alerts[idx];
       if (!a) return;
-      const borderColor = { P1: '#ef4444', P2: '#f97316', P3: '#eab308', P4: '#22c55e' };
-      const icons = { P1: '🔴', P2: '🟠', P3: '🟡', P4: '🟢' };
-      const times = { P1: 'Actuar en < 2h', P2: 'Actuar en < 24h', P3: 'Actuar en 72h' };
+      const borderColor = { P0: '#dc2626', P1: '#ef4444', P2: '#f97316', P3: '#eab308', P4: '#22c55e' };
+      const icons = { P0: '🚨', P1: '🔴', P2: '🟠', P3: '🟡', P4: '🟢' };
+      const times = { P0: 'ACCIÓN INMEDIATA', P1: 'Actuar en < 2h', P2: 'Actuar en < 24h', P3: 'Actuar en 72h' };
       const color = borderColor[a.priority] || '#eab308';
       openDetailPanel(
         `<div class="flex items-center gap-2">${icons[a.priority] || '🟡'} <span>${a.title}</span></div>`,
@@ -934,6 +959,11 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
             <span class="text-xs px-2 py-1 rounded-full font-medium" style="background:${color}20;color:${color}">${a.priority} — ${a.affected_area}</span>
             ${times[a.priority] ? `<span class="text-xs px-2 py-1 rounded-full bg-white/5 text-white/50">${times[a.priority]}</span>` : ''}
           </div>
+          ${a.priority === 'P0' ? `<div class="bg-red-900/30 border border-red-500/40 rounded-xl p-4">
+            <p class="text-red-400 text-xs font-bold uppercase tracking-wider mb-2">🚨 Alerta de huésped individual</p>
+            ${a.guest_name ? `<p class="text-white/80 text-sm mb-1"><strong>Huésped:</strong> ${a.guest_name}</p>` : ''}
+            ${a.promise_broken ? `<p class="text-white/80 text-sm"><strong>Promesa incumplida:</strong> ${a.promise_broken}</p>` : ''}
+          </div>` : ''}
           <div>
             <p class="text-white/30 text-xs font-semibold uppercase tracking-wider mb-2">Qué está pasando</p>
             <p class="text-white/80 text-sm leading-relaxed">${a.summary}</p>
