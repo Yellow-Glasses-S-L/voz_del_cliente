@@ -578,7 +578,10 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
           <div class="glass rounded-2xl p-5">
             <div class="flex items-center justify-between mb-3">
               <h3 class="font-semibold text-white/80">Competidores analizados</h3>
-              <button onclick="toggleAddCompetitor()" class="text-xs text-blue-400 hover:text-blue-300 transition">+ Agregar hotel</button>
+              <div class="flex items-center gap-3">
+                <button id="rerunBenchmarkBtn" onclick="rerunBenchmark()" class="text-xs text-white/40 hover:text-white/70 transition hidden">↻ Re-analizar</button>
+                <button onclick="toggleAddCompetitor()" class="text-xs text-blue-400 hover:text-blue-300 transition">+ Agregar hotel</button>
+              </div>
             </div>
             <div id="benchmark-active-competitors" class="flex flex-wrap gap-2"></div>
             <div id="add-competitor-form" class="hidden mt-4 flex flex-col sm:flex-row gap-2">
@@ -1653,6 +1656,11 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       { bg: 'rgba(239,68,68,0.2)',  border: '#ef4444' },   // red
     ];
 
+    function rerunBenchmark() {
+      benchmarkLoaded = false;
+      runBenchmark();
+    }
+
     function toggleAddCompetitor() {
       const form = document.getElementById('add-competitor-form');
       form.classList.toggle('hidden');
@@ -1787,6 +1795,11 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       const activeComp = document.getElementById('benchmark-active-competitors');
       activeComp.innerHTML = hotelProfile.competitors.map(c =>
         `<span class="text-xs bg-white/10 px-3 py-1.5 rounded-full text-white/70">${c}</span>`).join('');
+
+      // Show re-run button if benchmark results don't include all competitors
+      const analyzedCount = results.filter(h => !h.is_current).length;
+      const rerunBtn = document.getElementById('rerunBenchmarkBtn');
+      if (rerunBtn) rerunBtn.classList.toggle('hidden', analyzedCount >= hotelProfile.competitors.length);
 
       // Render competitive insights
       renderBenchmarkInsights(results);
