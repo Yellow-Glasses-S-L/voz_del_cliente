@@ -262,7 +262,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
 
       <!-- Hotel Hero -->
       <div id="hotelHero" class="relative rounded-2xl overflow-hidden mb-8 h-40 hidden">
-        <div id="hotelHeroBg" class="absolute inset-0 bg-cover bg-center"></div>
+        <div id="hotelHeroBg" class="absolute inset-0 bg-cover bg-center" style="background: linear-gradient(135deg,#1e3a8a 0%,#1e40af 50%,#1d4ed8 100%)"></div>
         <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent"></div>
         <div class="relative flex items-center gap-5 h-full px-6">
           <img id="hotelLogo" src="" alt="Logo" class="w-16 h-16 rounded-xl object-contain bg-white p-1.5 shadow-lg hidden" />
@@ -285,89 +285,108 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         <button onclick="goToStep2()" class="text-sm text-white/40 hover:text-white transition">← Nueva análisis</button>
       </div>
 
-      <!-- VOC Score -->
-      <div class="glass rounded-2xl p-8 mb-6 text-center">
-        <p class="text-white/50 text-xs font-semibold uppercase tracking-widest mb-4">VOC Score™ Global</p>
-        <div class="flex items-center justify-center mb-4">
-          <div class="relative w-44 h-44">
-            <canvas id="scoreGauge"></canvas>
-            <div class="absolute inset-0 flex flex-col items-center justify-center">
-              <span id="vocScoreNum" class="text-5xl font-extrabold"></span>
-              <span class="text-white/40 text-xs">/ 100</span>
+      <!-- Share URL -->
+      <div id="shareSection" class="glass rounded-2xl p-4 mb-6 hidden">
+        <div class="flex items-center gap-3">
+          <span class="text-white/50 text-sm">🔗 Dashboard guardado:</span>
+          <input id="shareUrl" type="text" readonly class="flex-1 bg-white/10 border border-white/20 rounded-lg px-3 py-1.5 text-white text-xs font-mono" />
+          <button onclick="copyShareUrl()" class="bg-blue-600 hover:bg-blue-500 transition rounded-lg px-3 py-1.5 text-xs font-medium whitespace-nowrap">Copiar</button>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="flex gap-1 mb-6 bg-white/5 rounded-xl p-1">
+        <button onclick="switchDashTab('dashboard')" id="dtab-dashboard"
+          class="dtab flex-1 rounded-lg py-2.5 text-sm font-medium transition">📊 Dashboard</button>
+        <button onclick="switchDashTab('alertas')" id="dtab-alertas"
+          class="dtab flex-1 rounded-lg py-2.5 text-sm font-medium transition">🚨 Alertas <span id="alertBadge" class="hidden ml-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5"></span></button>
+        <button onclick="switchDashTab('insights')" id="dtab-insights"
+          class="dtab flex-1 rounded-lg py-2.5 text-sm font-medium transition">💡 Insights</button>
+      </div>
+
+      <!-- TAB: DASHBOARD -->
+      <div id="tab-dashboard">
+        <div class="glass rounded-2xl p-8 mb-6 text-center">
+          <p class="text-white/50 text-xs font-semibold uppercase tracking-widest mb-4">VOC Score™ Global</p>
+          <div class="flex items-center justify-center gap-8 mb-4">
+            <div class="relative w-44 h-44">
+              <canvas id="scoreGauge"></canvas>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span id="vocScoreNum" class="text-5xl font-extrabold"></span>
+                <span class="text-white/40 text-xs">/ 100</span>
+              </div>
+            </div>
+            <div class="text-left hidden sm:block">
+              <div id="scoreLabel" class="text-xl font-semibold mb-2"></div>
+              <div class="text-white/50 text-sm mb-3">NPS estimado: <span id="npsNum" class="text-white font-semibold"></span></div>
+              <div id="alertBadgesRow" class="flex gap-2 flex-wrap"></div>
             </div>
           </div>
+          <p id="summaryText" class="text-white/60 text-sm max-w-2xl mx-auto leading-relaxed"></p>
         </div>
-        <div id="scoreLabel" class="text-lg font-semibold mb-3"></div>
-        <p id="summaryText" class="text-white/60 text-sm max-w-2xl mx-auto leading-relaxed"></p>
-      </div>
 
-      <!-- Radar + Bars -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div class="glass rounded-2xl p-6">
-          <h3 class="font-semibold mb-4 text-white/80">Radar de categorías</h3>
-          <div class="relative h-64">
-            <canvas id="radarChart"></canvas>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div class="glass rounded-2xl p-6">
+            <h3 class="font-semibold mb-4 text-white/80">Radar de categorías</h3>
+            <div class="relative h-64"><canvas id="radarChart"></canvas></div>
+          </div>
+          <div class="glass rounded-2xl p-6">
+            <h3 class="font-semibold mb-4 text-white/80">Score por categoría</h3>
+            <div id="categoryBars" class="space-y-3"></div>
           </div>
         </div>
-        <div class="glass rounded-2xl p-6">
-          <h3 class="font-semibold mb-4 text-white/80">Score por categoría</h3>
-          <div id="categoryBars" class="space-y-3"></div>
+
+        <!-- Competitors placeholder -->
+        <div id="competitorSection" class="glass rounded-2xl p-6 hidden">
+          <h3 class="font-semibold mb-3 text-white/80">Benchmark vs. competidores</h3>
+          <p class="text-white/40 text-sm mb-3">Competidores configurados:</p>
+          <div id="competitorList" class="flex flex-wrap gap-2"></div>
         </div>
       </div>
 
-      <!-- Strengths & Improvements -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div class="glass rounded-2xl p-6">
-          <h3 class="font-semibold mb-4 flex items-center gap-2">
-            <span class="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center text-green-400 text-xs">✓</span>
-            Top fortalezas
+      <!-- TAB: ALERTAS -->
+      <div id="tab-alertas" class="hidden space-y-6">
+        <!-- Alerts list -->
+        <div>
+          <h3 class="font-semibold mb-3 text-white/80">Alertas operativas</h3>
+          <div id="alertsList" class="space-y-3">
+            <p class="text-white/30 text-sm">No se detectaron alertas en las reviews analizadas.</p>
+          </div>
+        </div>
+        <!-- Felicitaciones -->
+        <div>
+          <h3 class="font-semibold mb-3 text-white/80 flex items-center gap-2">
+            🌟 Felicitaciones a personas del equipo
+            <span class="text-xs font-normal text-white/40">— mencionadas directamente en reviews</span>
           </h3>
-          <ul id="strengthsList" class="space-y-3"></ul>
-        </div>
-        <div class="glass rounded-2xl p-6">
-          <h3 class="font-semibold mb-4 flex items-center gap-2">
-            <span class="w-6 h-6 bg-orange-500/20 rounded-full flex items-center justify-center text-orange-400 text-xs">↑</span>
-            Áreas de mejora
-          </h3>
-          <ul id="improvementsList" class="space-y-3"></ul>
+          <div id="complimentsList" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <p class="text-white/30 text-sm col-span-2">No se detectaron menciones nominales positivas.</p>
+          </div>
         </div>
       </div>
 
-      <!-- Alerts -->
-      <div id="alertsSection" class="hidden mb-6">
-        <h3 class="font-semibold mb-3 flex items-center gap-2">
-          <span>🚨</span> Alertas detectadas
-        </h3>
-        <div id="alertsList" class="space-y-3"></div>
-      </div>
-
-      <!-- Insights -->
-      <div id="insightsSection" class="hidden mb-6">
-        <h3 class="font-semibold mb-3 flex items-center gap-2">
-          <span>💡</span> Insights estratégicos
-        </h3>
-        <div id="insightsList" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
-      </div>
-
-      <!-- Share URL -->
-      <div id="shareSection" class="glass rounded-2xl p-6 mb-6 hidden">
-        <h3 class="font-semibold mb-2 text-white/80 flex items-center gap-2">🔗 Dashboard guardado</h3>
-        <p class="text-white/50 text-sm mb-3">Comparte este enlace para acceder directamente al dashboard:</p>
-        <div class="flex gap-2">
-          <input id="shareUrl" type="text" readonly
-            class="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white text-sm font-mono" />
-          <button onclick="copyShareUrl()"
-            class="bg-blue-600 hover:bg-blue-500 transition rounded-xl px-4 py-2.5 text-sm font-medium whitespace-nowrap">
-            Copiar
-          </button>
+      <!-- TAB: INSIGHTS -->
+      <div id="tab-insights" class="hidden space-y-6">
+        <div>
+          <h3 class="font-semibold mb-3 text-white/80">Insights estratégicos</h3>
+          <div id="insightsList" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"></div>
         </div>
-      </div>
-
-      <!-- Competitors placeholder -->
-      <div id="competitorSection" class="glass rounded-2xl p-6 mb-6 hidden">
-        <h3 class="font-semibold mb-3 text-white/80">Benchmark vs. competidores</h3>
-        <p class="text-white/40 text-sm mb-3">Competidores configurados — el análisis comparativo estará disponible próximamente.</p>
-        <div id="competitorList" class="flex flex-wrap gap-2"></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="glass rounded-2xl p-6">
+            <h3 class="font-semibold mb-4 flex items-center gap-2">
+              <span class="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center text-green-400 text-xs">✓</span>
+              Top fortalezas
+            </h3>
+            <ul id="strengthsList" class="space-y-4"></ul>
+          </div>
+          <div class="glass rounded-2xl p-6">
+            <h3 class="font-semibold mb-4 flex items-center gap-2">
+              <span class="w-6 h-6 bg-orange-500/20 rounded-full flex items-center justify-center text-orange-400 text-xs">↑</span>
+              Áreas de mejora
+            </h3>
+            <ul id="improvementsList" class="space-y-4"></ul>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -602,42 +621,49 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
 
     // ── Render Results ───────────────────────────────
     function renderResults(data, sourceLabel) {
-      const { voc_score, categories, strengths, improvements, summary, alerts = [], insights = [], slug } = data;
+      const { voc_score, categories, strengths, improvements, summary, alerts = [], insights = [], slug, nps_estimated, compliments = [] } = data;
 
       const metaText = [hotelProfile.location, hotelProfile.stars ? hotelProfile.stars + '★' : '', hotelProfile.type, sourceLabel].filter(Boolean).join(' · ');
-      const photo = hotelBranding.photo_url || data.photo_url ||
-        `https://source.unsplash.com/1200x400/?hotel,luxury,${encodeURIComponent(hotelProfile.name)}`;
+      const photo = hotelBranding.photo_url || data.photo_url || null;
       const logo = hotelBranding.logo_url || data.logo_url;
 
+      document.getElementById('hotelHero').classList.remove('hidden');
+      document.getElementById('hotelHeader').classList.add('hidden');
       if (photo) {
-        document.getElementById('hotelHero').classList.remove('hidden');
-        document.getElementById('hotelHeader').classList.add('hidden');
         document.getElementById('hotelHeroBg').style.backgroundImage = `url('${photo}')`;
-        document.getElementById('resultHotelName').textContent = hotelProfile.name;
-        document.getElementById('resultHotelMeta').textContent = metaText;
-        if (logo) {
-          const logoEl = document.getElementById('hotelLogo');
-          logoEl.src = logo; logoEl.classList.remove('hidden');
-          logoEl.onerror = () => logoEl.classList.add('hidden');
-        }
-      } else {
-        document.getElementById('hotelHero').classList.add('hidden');
-        document.getElementById('hotelHeader').classList.remove('hidden');
-        document.getElementById('resultHotelNameFallback').textContent = hotelProfile.name;
-        document.getElementById('resultHotelMetaFallback').textContent = metaText;
-        if (logo) {
-          const logoEl = document.getElementById('hotelLogoSmall');
-          logoEl.src = logo; logoEl.classList.remove('hidden');
-          logoEl.onerror = () => logoEl.classList.add('hidden');
-        }
+      }
+      document.getElementById('resultHotelName').textContent = hotelProfile.name;
+      document.getElementById('resultHotelMeta').textContent = metaText;
+      if (logo) {
+        const logoEl = document.getElementById('hotelLogo');
+        logoEl.src = logo; logoEl.classList.remove('hidden');
+        logoEl.onerror = () => logoEl.classList.add('hidden');
       }
 
       document.getElementById('vocScoreNum').textContent = voc_score;
       const label = getScoreLabel(voc_score);
       const scoreLabelEl = document.getElementById('scoreLabel');
       scoreLabelEl.textContent = label.text;
-      scoreLabelEl.className = `text-lg font-semibold ${label.color}`;
+      scoreLabelEl.className = `text-xl font-semibold ${label.color}`;
       document.getElementById('summaryText').textContent = summary;
+      if (nps_estimated !== undefined) {
+        const npsEl = document.getElementById('npsNum');
+        const npsColor = nps_estimated >= 30 ? 'text-green-400' : nps_estimated >= 0 ? 'text-yellow-400' : 'text-red-400';
+        npsEl.textContent = (nps_estimated > 0 ? '+' : '') + nps_estimated;
+        npsEl.className = `font-semibold ${npsColor}`;
+      }
+      // Alert badges next to score
+      const badgesRow = document.getElementById('alertBadgesRow');
+      const alertCounts = { P1: 0, P2: 0, P3: 0, P4: 0 };
+      alerts.forEach(a => alertCounts[a.priority] = (alertCounts[a.priority] || 0) + 1);
+      const badgeColors = { P1: 'bg-red-500', P2: 'bg-orange-500', P3: 'bg-yellow-500', P4: 'bg-green-500' };
+      const badgeIcons = { P1: '🔴', P2: '🟠', P3: '🟡', P4: '🟢' };
+      badgesRow.innerHTML = Object.entries(alertCounts).filter(([,n]) => n > 0)
+        .map(([p, n]) => `<span class="flex items-center gap-1 text-xs ${badgeColors[p]} px-2 py-1 rounded-full">${badgeIcons[p]} ${n}</span>`).join('');
+      // Also update tab badge
+      const alertBadge = document.getElementById('alertBadge');
+      const totalAlerts = alerts.length;
+      if (totalAlerts > 0) { alertBadge.textContent = totalAlerts; alertBadge.classList.remove('hidden'); }
 
       if (gaugeInstance) gaugeInstance.destroy();
       gaugeInstance = new Chart(document.getElementById('scoreGauge').getContext('2d'), {
@@ -681,40 +707,49 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       }).join('');
 
       // Alerts
-      const alertPriority = { P1: { color: 'red', label: 'Crítica', time: '< 2h' }, P2: { color: 'orange', label: 'Urgente', time: '< 24h' }, P3: { color: 'yellow', label: 'Atención', time: '72h' }, P4: { color: 'green', label: 'Oportunidad', time: '' } };
-      const alertIcon = { P1: '🔴', P2: '🟠', P3: '🟡', P4: '🟢' };
+      const alertBorderColor = { P1: '#ef4444', P2: '#f97316', P3: '#eab308', P4: '#22c55e' };
+      const alertTime = { P1: '< 2h', P2: '< 24h', P3: '72h', P4: '' };
+      const alertIconMap = { P1: '🔴', P2: '🟠', P3: '🟡', P4: '🟢' };
+      const alertsEl = document.getElementById('alertsList');
       if (alerts.length > 0) {
-        document.getElementById('alertsSection').classList.remove('hidden');
-        document.getElementById('alertsList').innerHTML = alerts.map(a => {
-          const p = alertPriority[a.priority] || alertPriority.P3;
-          return `<div class="glass rounded-xl p-4 border-l-4" style="border-color: ${p.color === 'red' ? '#ef4444' : p.color === 'orange' ? '#f97316' : p.color === 'yellow' ? '#eab308' : '#22c55e'}">
-            <div class="flex items-center gap-2 mb-1">
-              <span>${alertIcon[a.priority] || '🟡'}</span>
+        alertsEl.innerHTML = alerts.map(a => `
+          <div class="glass rounded-xl p-4 border-l-4" style="border-color:${alertBorderColor[a.priority] || '#eab308'}">
+            <div class="flex items-center gap-2 mb-2">
+              <span>${alertIconMap[a.priority] || '🟡'}</span>
               <span class="font-semibold text-sm">${a.title}</span>
-              ${p.time ? `<span class="ml-auto text-xs text-white/40">Actuar en ${p.time}</span>` : ''}
+              <span class="text-xs text-white/30 bg-white/5 px-2 py-0.5 rounded-full ml-1">${a.affected_area}</span>
+              ${alertTime[a.priority] ? `<span class="ml-auto text-xs text-white/40">Actuar en ${alertTime[a.priority]}</span>` : ''}
             </div>
-            <p class="text-white/60 text-xs mb-2">${a.summary}</p>
-            <div class="text-xs bg-white/5 rounded-lg px-3 py-2 text-white/70">
-              <strong>Acción:</strong> ${a.immediate_action}
-            </div>
-            ${a.suggested_response ? `<div class="text-xs text-white/40 mt-2 italic">"${a.suggested_response}"</div>` : ''}
+            <p class="text-white/60 text-xs mb-3">${a.summary}</p>
+            <div class="text-xs bg-white/5 rounded-lg px-3 py-2 text-white/70 mb-2"><strong>Acción:</strong> ${a.immediate_action}</div>
+            ${a.suggested_response ? `<div class="text-xs text-white/30 italic border-l-2 border-white/10 pl-2">"${a.suggested_response}"</div>` : ''}
             ${a.evidence?.length ? `<div class="mt-2 flex flex-wrap gap-2">${a.evidence.map(e => `<span class="text-xs bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white/40 italic">"${e}"</span>`).join('')}</div>` : ''}
-          </div>`;
-        }).join('');
+          </div>`).join('');
+      }
+
+      // Felicitaciones
+      const complimentsEl = document.getElementById('complimentsList');
+      if (compliments.length > 0) {
+        complimentsEl.innerHTML = compliments.map(c => `
+          <div class="glass rounded-xl p-4 flex items-start gap-3">
+            <div class="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center text-lg flex-shrink-0">⭐</div>
+            <div>
+              <div class="font-semibold text-sm text-yellow-300">${c.person}</div>
+              <div class="text-white/40 text-xs mb-2">${c.role || 'Equipo del hotel'}</div>
+              <blockquote class="text-white/60 text-xs italic leading-relaxed">"${c.quote}"</blockquote>
+            </div>
+          </div>`).join('');
       }
 
       // Insights
       const insightStyle = { strength: { icon: '✨', bg: 'bg-green-500/10', border: 'border-green-500/30', text: 'text-green-400' }, warning: { icon: '⚠️', bg: 'bg-orange-500/10', border: 'border-orange-500/30', text: 'text-orange-400' }, opportunity: { icon: '🚀', bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400' } };
-      if (insights.length > 0) {
-        document.getElementById('insightsSection').classList.remove('hidden');
-        document.getElementById('insightsList').innerHTML = insights.map(ins => {
-          const st = insightStyle[ins.type] || insightStyle.opportunity;
-          return `<div class="${st.bg} border ${st.border} rounded-xl p-4">
-            <div class="flex items-center gap-2 mb-2"><span>${st.icon}</span><span class="font-semibold text-sm ${st.text}">${ins.title}</span></div>
-            <p class="text-white/60 text-xs leading-relaxed">${ins.description}</p>
-          </div>`;
-        }).join('');
-      }
+      document.getElementById('insightsList').innerHTML = insights.map(ins => {
+        const st = insightStyle[ins.type] || insightStyle.opportunity;
+        return `<div class="${st.bg} border ${st.border} rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-2"><span>${st.icon}</span><span class="font-semibold text-sm ${st.text}">${ins.title}</span></div>
+          <p class="text-white/60 text-xs leading-relaxed">${ins.description}</p>
+        </div>`;
+      }).join('');
 
       // Share URL
       if (slug) {
@@ -732,6 +767,16 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       }
 
       setStep(3);
+      switchDashTab('dashboard');
+    }
+
+    // ── Dashboard Tabs ───────────────────────────────
+    function switchDashTab(tab) {
+      ['dashboard','alertas','insights'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
+        const btn = document.getElementById(`dtab-${t}`);
+        btn.className = `dtab flex-1 rounded-lg py-2.5 text-sm font-medium transition ${t === tab ? 'bg-white/15 text-white' : 'text-white/40 hover:text-white/70'}`;
+      });
     }
 
     function copyShareUrl() {
