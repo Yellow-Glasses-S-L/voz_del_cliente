@@ -46,7 +46,7 @@
     <div class="text-xs text-white/40">Powered by Claude AI</div>
   </header>
 
-  <main class="max-w-3xl mx-auto px-6 py-10">
+  <main class="max-w-7xl mx-auto px-6 py-10">
 
     <!-- Step Indicator -->
     <div id="stepIndicator" class="flex items-center justify-center gap-0 mb-10">
@@ -70,6 +70,7 @@
     <!-- STEP 1: Hotel Profile                       -->
     <!-- ═══════════════════════════════════════════ -->
     <div id="step1" class="fade-in">
+      <div class="max-w-2xl mx-auto">
       <div class="text-center mb-8">
         <h1 class="text-3xl font-extrabold mb-2">Perfil de tu hotel</h1>
         <p class="text-white/50">Cuéntanos sobre tu establecimiento para personalizar el análisis</p>
@@ -170,12 +171,14 @@
           Continuar → Importar reviews
         </button>
       </div>
+      </div><!-- /max-w-2xl -->
     </div>
 
     <!-- ═══════════════════════════════════════════ -->
     <!-- STEP 2: Import Reviews                      -->
     <!-- ═══════════════════════════════════════════ -->
     <div id="step2" class="hidden fade-in">
+      <div class="max-w-2xl mx-auto">
       <div class="text-center mb-8">
         <h2 class="text-3xl font-extrabold mb-2">Importar reviews</h2>
         <p class="text-white/50">Elige cómo quieres cargar las opiniones de <span id="hotelNameStep2" class="text-white font-medium"></span></p>
@@ -257,6 +260,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
           </button>
         </div>
       </div>
+      </div><!-- /max-w-2xl -->
     </div>
 
     <!-- ═══════════════════════════════════════════ -->
@@ -317,34 +321,37 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
 
       <!-- TAB: DASHBOARD -->
       <div id="tab-dashboard">
-        <div class="glass rounded-2xl p-8 mb-6 text-center">
-          <p class="text-white/50 text-xs font-semibold uppercase tracking-widest mb-4">VOC Score™ Global</p>
-          <div class="flex items-center justify-center gap-8 mb-4">
-            <div class="relative w-44 h-44">
+        <!-- 3-col on desktop: gauge | radar | bars -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          <!-- VOC Score -->
+          <div class="glass rounded-2xl p-6 flex flex-col items-center justify-center text-center">
+            <p class="text-white/50 text-xs font-semibold uppercase tracking-widest mb-4">VOC Score™ Global</p>
+            <div class="relative w-40 h-40 mb-4">
               <canvas id="scoreGauge"></canvas>
               <div class="absolute inset-0 flex flex-col items-center justify-center">
                 <span id="vocScoreNum" class="text-5xl font-extrabold"></span>
                 <span class="text-white/40 text-xs">/ 100</span>
               </div>
             </div>
-            <div class="text-left hidden sm:block">
-              <div id="scoreLabel" class="text-xl font-semibold mb-2"></div>
-              <div class="text-white/50 text-sm mb-3">NPS estimado: <span id="npsNum" class="text-white font-semibold"></span></div>
-              <div id="alertBadgesRow" class="flex gap-2 flex-wrap"></div>
-            </div>
+            <div id="scoreLabel" class="text-lg font-semibold mb-1"></div>
+            <div class="text-white/50 text-sm mb-3">NPS estimado: <span id="npsNum" class="text-white font-semibold"></span></div>
+            <div id="alertBadgesRow" class="flex gap-2 flex-wrap justify-center"></div>
           </div>
-          <p id="summaryText" class="text-white/60 text-sm max-w-2xl mx-auto leading-relaxed"></p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <!-- Radar -->
           <div class="glass rounded-2xl p-6">
             <h3 class="font-semibold mb-4 text-white/80">Radar de categorías</h3>
             <div class="relative h-64"><canvas id="radarChart"></canvas></div>
           </div>
+          <!-- Category bars -->
           <div class="glass rounded-2xl p-6">
             <h3 class="font-semibold mb-4 text-white/80">Score por categoría</h3>
             <div id="categoryBars" class="space-y-3"></div>
           </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="glass rounded-2xl px-8 py-5 mb-6">
+          <p id="summaryText" class="text-white/60 text-sm leading-relaxed"></p>
         </div>
 
         <!-- Competitors placeholder -->
@@ -356,30 +363,35 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       </div>
 
       <!-- TAB: ALERTAS -->
-      <div id="tab-alertas" class="hidden space-y-6">
-        <!-- P0 Guest Alerts -->
-        <div id="guestAlertSection" class="hidden">
-          <h3 class="font-semibold mb-3 flex items-center gap-2">
-            <span class="animate-pulse">🚨</span> Incidentes de huéspedes — Acción inmediata
-            <span class="text-xs font-normal text-red-400">— Contacto directo requerido</span>
-          </h3>
-          <div id="guestAlertsList" class="space-y-2"></div>
-        </div>
-        <!-- Alerts list -->
-        <div>
-          <h3 class="font-semibold mb-3 text-white/80">Alertas operativas</h3>
-          <div id="alertsList" class="space-y-3">
-            <p class="text-white/30 text-sm">No se detectaron alertas en las reviews analizadas.</p>
+      <div id="tab-alertas" class="hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Left 2/3: P0 incidents + operational alerts -->
+          <div class="lg:col-span-2 space-y-6">
+            <!-- P0 Guest Alerts -->
+            <div id="guestAlertSection" class="hidden">
+              <h3 class="font-semibold mb-3 flex items-center gap-2">
+                <span class="animate-pulse">🚨</span> Incidentes de huéspedes — Acción inmediata
+                <span class="text-xs font-normal text-red-400">— Contacto directo requerido</span>
+              </h3>
+              <div id="guestAlertsList" class="space-y-2"></div>
+            </div>
+            <!-- Operational alerts -->
+            <div>
+              <h3 class="font-semibold mb-3 text-white/80">Alertas operativas</h3>
+              <div id="alertsList" class="space-y-3">
+                <p class="text-white/30 text-sm">No se detectaron alertas en las reviews analizadas.</p>
+              </div>
+            </div>
           </div>
-        </div>
-        <!-- Felicitaciones -->
-        <div>
-          <h3 class="font-semibold mb-3 text-white/80 flex items-center gap-2">
-            🌟 Felicitaciones a personas del equipo
-            <span class="text-xs font-normal text-white/40">— mencionadas directamente en reviews</span>
-          </h3>
-          <div id="complimentsList" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <p class="text-white/30 text-sm col-span-2">No se detectaron menciones nominales positivas.</p>
+          <!-- Right 1/3: Felicitaciones -->
+          <div>
+            <h3 class="font-semibold mb-3 text-white/80 flex items-center gap-2">
+              🌟 Felicitaciones al equipo
+              <span class="text-xs font-normal text-white/40">— reviews reales</span>
+            </h3>
+            <div id="complimentsList" class="space-y-3">
+              <p class="text-white/30 text-sm">No se detectaron menciones nominales positivas.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -388,7 +400,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       <div id="tab-insights" class="hidden space-y-6">
         <div>
           <h3 class="font-semibold mb-3 text-white/80">Insights estratégicos</h3>
-          <div id="insightsList" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"></div>
+          <div id="insightsList" class="space-y-4 mb-6"></div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="glass rounded-2xl p-6">
