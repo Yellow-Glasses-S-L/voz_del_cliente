@@ -875,7 +875,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
           `<span class="text-xs bg-white/10 px-3 py-1 rounded-full text-white/60">${c}</span>`).join('');
       }
 
-      if (selectedPlaceId) {
+      if (selectedPlaceId || (sourceLabel && sourceLabel.toLowerCase().includes('google'))) {
         document.getElementById('syncBtn').classList.remove('hidden');
       }
 
@@ -1175,12 +1175,24 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
 
     // ── Sync ─────────────────────────────────────────
     async function runSync() {
-      if (!selectedPlaceId) {
-        alert('El sync solo está disponible para análisis desde Google Reviews. Haz un nuevo análisis con Google Places.');
-        return;
-      }
       const btn = document.getElementById('syncBtn');
       const icon = document.getElementById('syncBtnIcon');
+      // If no place_id cached (e.g. old analysis loaded from slug), search by name first
+      if (!selectedPlaceId) {
+        btn.disabled = true;
+        icon.textContent = '⌕';
+        try {
+          const sr = await fetch(FUNCTION_URL, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'search_places', query: `${hotelProfile.name} ${hotelProfile.location}` }),
+          });
+          const sd = await sr.json();
+          if (sd.places?.length) selectedPlaceId = sd.places[0].place_id;
+          else { alert('No se pudo encontrar el hotel en Google Places.'); btn.disabled = false; icon.textContent = '↻'; return; }
+        } catch (e) {
+          alert(`Error buscando hotel: ${e.message}`); btn.disabled = false; icon.textContent = '↻'; return;
+        }
+      }
       btn.disabled = true;
       icon.style.animation = 'spin 0.8s linear infinite';
       try {
