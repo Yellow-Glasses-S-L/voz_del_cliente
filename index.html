@@ -317,11 +317,41 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         </div>
       </div>
 
+      <!-- Alerts -->
+      <div id="alertsSection" class="hidden mb-6">
+        <h3 class="font-semibold mb-3 flex items-center gap-2">
+          <span>🚨</span> Alertas detectadas
+        </h3>
+        <div id="alertsList" class="space-y-3"></div>
+      </div>
+
+      <!-- Insights -->
+      <div id="insightsSection" class="hidden mb-6">
+        <h3 class="font-semibold mb-3 flex items-center gap-2">
+          <span>💡</span> Insights estratégicos
+        </h3>
+        <div id="insightsList" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+      </div>
+
+      <!-- Share URL -->
+      <div id="shareSection" class="glass rounded-2xl p-6 mb-6 hidden">
+        <h3 class="font-semibold mb-2 text-white/80 flex items-center gap-2">🔗 Dashboard guardado</h3>
+        <p class="text-white/50 text-sm mb-3">Comparte este enlace para acceder directamente al dashboard:</p>
+        <div class="flex gap-2">
+          <input id="shareUrl" type="text" readonly
+            class="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white text-sm font-mono" />
+          <button onclick="copyShareUrl()"
+            class="bg-blue-600 hover:bg-blue-500 transition rounded-xl px-4 py-2.5 text-sm font-medium whitespace-nowrap">
+            Copiar
+          </button>
+        </div>
+      </div>
+
       <!-- Competitors placeholder -->
       <div id="competitorSection" class="glass rounded-2xl p-6 mb-6 hidden">
         <h3 class="font-semibold mb-3 text-white/80">Benchmark vs. competidores</h3>
-        <p class="text-white/40 text-sm">Añade reviews de tus competidores para ver la comparativa aquí.</p>
-        <div id="competitorList" class="mt-3 flex flex-wrap gap-2"></div>
+        <p class="text-white/40 text-sm mb-3">Competidores configurados — el análisis comparativo estará disponible próximamente.</p>
+        <div id="competitorList" class="flex flex-wrap gap-2"></div>
       </div>
 
     </div>
@@ -515,7 +545,21 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         const res = await fetch(FUNCTION_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'analyze', hotel_name: hotelProfile.name, hotel_type: hotelProfile.type, hotel_stars: hotelProfile.stars, focus_areas: hotelProfile.focus, reviews }),
+          body: JSON.stringify({
+            action: 'analyze',
+            hotel_profile: {
+              name: hotelProfile.name,
+              location: hotelProfile.location,
+              stars: hotelProfile.stars,
+              type: hotelProfile.type,
+              director: hotelProfile.director,
+              role: hotelProfile.role,
+              competitors: hotelProfile.competitors,
+              focus_areas: hotelProfile.focus,
+            },
+            reviews,
+            source: sourceLabel,
+          }),
         });
         if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Error servidor'); }
         const data = await res.json();
@@ -538,7 +582,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
 
     // ── Render Results ───────────────────────────────
     function renderResults(data, sourceLabel) {
-      const { voc_score, categories, strengths, improvements, summary } = data;
+      const { voc_score, categories, strengths, improvements, summary, alerts = [], insights = [], slug } = data;
 
       document.getElementById('resultHotelName').textContent = hotelProfile.name;
       document.getElementById('resultHotelMeta').textContent =
@@ -582,6 +626,50 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       document.getElementById('improvementsList').innerHTML = improvements.map(i =>
         `<li class="flex items-start gap-3 text-sm"><span class="mt-0.5 text-orange-400 flex-shrink-0">↑</span><span class="text-white/80">${i}</span></li>`).join('');
 
+      // Alerts
+      const alertPriority = { P1: { color: 'red', label: 'Crítica', time: '< 2h' }, P2: { color: 'orange', label: 'Urgente', time: '< 24h' }, P3: { color: 'yellow', label: 'Atención', time: '72h' }, P4: { color: 'green', label: 'Oportunidad', time: '' } };
+      const alertIcon = { P1: '🔴', P2: '🟠', P3: '🟡', P4: '🟢' };
+      if (alerts.length > 0) {
+        document.getElementById('alertsSection').classList.remove('hidden');
+        document.getElementById('alertsList').innerHTML = alerts.map(a => {
+          const p = alertPriority[a.priority] || alertPriority.P3;
+          return `<div class="glass rounded-xl p-4 border-l-4" style="border-color: ${p.color === 'red' ? '#ef4444' : p.color === 'orange' ? '#f97316' : p.color === 'yellow' ? '#eab308' : '#22c55e'}">
+            <div class="flex items-center gap-2 mb-1">
+              <span>${alertIcon[a.priority] || '🟡'}</span>
+              <span class="font-semibold text-sm">${a.title}</span>
+              ${p.time ? `<span class="ml-auto text-xs text-white/40">Actuar en ${p.time}</span>` : ''}
+            </div>
+            <p class="text-white/60 text-xs mb-2">${a.summary}</p>
+            <div class="text-xs bg-white/5 rounded-lg px-3 py-2 text-white/70">
+              <strong>Acción:</strong> ${a.immediate_action}
+            </div>
+            ${a.suggested_response ? `<div class="text-xs text-white/40 mt-2 italic">"${a.suggested_response}"</div>` : ''}
+          </div>`;
+        }).join('');
+      }
+
+      // Insights
+      const insightStyle = { strength: { icon: '✨', bg: 'bg-green-500/10', border: 'border-green-500/30', text: 'text-green-400' }, warning: { icon: '⚠️', bg: 'bg-orange-500/10', border: 'border-orange-500/30', text: 'text-orange-400' }, opportunity: { icon: '🚀', bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400' } };
+      if (insights.length > 0) {
+        document.getElementById('insightsSection').classList.remove('hidden');
+        document.getElementById('insightsList').innerHTML = insights.map(ins => {
+          const st = insightStyle[ins.type] || insightStyle.opportunity;
+          return `<div class="${st.bg} border ${st.border} rounded-xl p-4">
+            <div class="flex items-center gap-2 mb-2"><span>${st.icon}</span><span class="font-semibold text-sm ${st.text}">${ins.title}</span></div>
+            <p class="text-white/60 text-xs leading-relaxed">${ins.description}</p>
+          </div>`;
+        }).join('');
+      }
+
+      // Share URL
+      if (slug) {
+        const url = `${window.location.origin}${window.location.pathname}?h=${slug}`;
+        document.getElementById('shareUrl').value = url;
+        document.getElementById('shareSection').classList.remove('hidden');
+        window.history.replaceState({}, '', `?h=${slug}`);
+      }
+
+      // Competitors
       if (hotelProfile.competitors && hotelProfile.competitors.length > 0) {
         document.getElementById('competitorSection').classList.remove('hidden');
         document.getElementById('competitorList').innerHTML = hotelProfile.competitors.map(c =>
@@ -590,6 +678,44 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
 
       setStep(3);
     }
+
+    function copyShareUrl() {
+      const input = document.getElementById('shareUrl');
+      navigator.clipboard.writeText(input.value).then(() => {
+        const btn = event.target;
+        btn.textContent = '✓ Copiado';
+        setTimeout(() => btn.textContent = 'Copiar', 2000);
+      });
+    }
+
+    // ── Load from URL ────────────────────────────────
+    async function loadFromSlug(slug) {
+      document.getElementById('stepIndicator').classList.add('hidden');
+      document.getElementById('step1').classList.add('hidden');
+      document.getElementById('step2').classList.add('hidden');
+      document.getElementById('step3').classList.remove('hidden');
+      document.getElementById('resultHotelName').textContent = 'Cargando...';
+
+      const res = await fetch(FUNCTION_URL, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'load', slug }),
+      });
+      const data = await res.json();
+      if (data.error || !data.hotel) {
+        alert('Dashboard no encontrado.'); window.location.href = window.location.pathname; return;
+      }
+      hotelProfile = {
+        name: data.hotel.name, location: data.hotel.location,
+        stars: data.hotel.stars, type: data.hotel.type,
+        competitors: data.hotel.competitors || [], focus: data.hotel.focus_areas || [],
+      };
+      const a = data.analysis;
+      if (a) renderResults({ ...a, categories: a.categories, alerts: a.alerts || [], insights: a.insights || [], slug }, a.source || 'Guardado');
+    }
+
+    // ── Init ─────────────────────────────────────────
+    const urlSlug = new URLSearchParams(window.location.search).get('h');
+    if (urlSlug) loadFromSlug(urlSlug);
 
     function getScoreColor(s) { return s >= 75 ? '#22c55e' : s >= 50 ? '#f59e0b' : '#ef4444'; }
     function getScoreLabel(s) {
