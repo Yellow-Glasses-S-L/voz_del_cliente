@@ -605,7 +605,8 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       const { voc_score, categories, strengths, improvements, summary, alerts = [], insights = [], slug } = data;
 
       const metaText = [hotelProfile.location, hotelProfile.stars ? hotelProfile.stars + '★' : '', hotelProfile.type, sourceLabel].filter(Boolean).join(' · ');
-      const photo = hotelBranding.photo_url || data.photo_url;
+      const photo = hotelBranding.photo_url || data.photo_url ||
+        `https://source.unsplash.com/1200x400/?hotel,luxury,${encodeURIComponent(hotelProfile.name)}`;
       const logo = hotelBranding.logo_url || data.logo_url;
 
       if (photo) {
@@ -663,11 +664,21 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         return `<div><div class="flex justify-between text-xs mb-1"><span class="text-white/70">${CATEGORY_LABELS[k]}</span><span class="font-semibold" style="color:${c}">${s}</span></div><div class="h-1.5 bg-white/10 rounded-full overflow-hidden"><div class="h-full rounded-full" style="width:${s}%;background:${c}"></div></div></div>`;
       }).join('');
 
-      document.getElementById('strengthsList').innerHTML = strengths.map(s =>
-        `<li class="flex items-start gap-3 text-sm"><span class="mt-0.5 text-green-400 flex-shrink-0">✦</span><span class="text-white/80">${s}</span></li>`).join('');
+      document.getElementById('strengthsList').innerHTML = strengths.map(s => {
+        const text = s.text || s; const quote = s.quote || null;
+        return `<li class="space-y-1.5">
+          <div class="flex items-start gap-3 text-sm"><span class="mt-0.5 text-green-400 flex-shrink-0">✦</span><span class="text-white/80 font-medium">${text}</span></div>
+          ${quote ? `<blockquote class="ml-6 pl-3 border-l-2 border-green-500/30 text-white/40 text-xs italic leading-relaxed">"${quote}"</blockquote>` : ''}
+        </li>`;
+      }).join('');
 
-      document.getElementById('improvementsList').innerHTML = improvements.map(i =>
-        `<li class="flex items-start gap-3 text-sm"><span class="mt-0.5 text-orange-400 flex-shrink-0">↑</span><span class="text-white/80">${i}</span></li>`).join('');
+      document.getElementById('improvementsList').innerHTML = improvements.map(i => {
+        const text = i.text || i; const quote = i.quote || null;
+        return `<li class="space-y-1.5">
+          <div class="flex items-start gap-3 text-sm"><span class="mt-0.5 text-orange-400 flex-shrink-0">↑</span><span class="text-white/80 font-medium">${text}</span></div>
+          ${quote ? `<blockquote class="ml-6 pl-3 border-l-2 border-orange-500/30 text-white/40 text-xs italic leading-relaxed">"${quote}"</blockquote>` : ''}
+        </li>`;
+      }).join('');
 
       // Alerts
       const alertPriority = { P1: { color: 'red', label: 'Crítica', time: '< 2h' }, P2: { color: 'orange', label: 'Urgente', time: '< 24h' }, P3: { color: 'yellow', label: 'Atención', time: '72h' }, P4: { color: 'green', label: 'Oportunidad', time: '' } };
@@ -687,6 +698,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
               <strong>Acción:</strong> ${a.immediate_action}
             </div>
             ${a.suggested_response ? `<div class="text-xs text-white/40 mt-2 italic">"${a.suggested_response}"</div>` : ''}
+            ${a.evidence?.length ? `<div class="mt-2 flex flex-wrap gap-2">${a.evidence.map((e: string) => `<span class="text-xs bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white/40 italic">"${e}"</span>`).join('')}</div>` : ''}
           </div>`;
         }).join('');
       }
