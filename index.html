@@ -32,6 +32,134 @@
     #detailPanel { transition: opacity 0.2s; }
     #detailPanelInner { transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
     #detailPanel.hidden #detailPanelInner { transform: translateX(100%); }
+
+    /* ── Org Chart ──────────────────────────────────── */
+    .org-chart-wrap { padding: 16px 8px; }
+    .org-node-group { display: flex; flex-direction: column; align-items: center; }
+    /* Connector from parent to children row */
+    .org-children-wrap { display: flex; flex-direction: column; align-items: center; }
+    .org-vert-line { width: 2px; height: 20px; background: rgba(255,255,255,0.15); }
+    .org-horiz-row { display: flex; align-items: flex-start; gap: 0; }
+    /* Each child gets a "T" connector */
+    .org-child-col { display: flex; flex-direction: column; align-items: center; }
+    .org-child-col-inner { display: flex; align-items: flex-start; position: relative; }
+    /* Horizontal bar spanning all children */
+    .org-h-bar { height: 2px; background: rgba(255,255,255,0.15); }
+    .org-node-card {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      padding: 10px 14px;
+      min-width: 140px;
+      max-width: 180px;
+      cursor: default;
+      position: relative;
+      transition: background 0.15s;
+      user-select: none;
+    }
+    .org-node-card:hover { background: rgba(255,255,255,0.10); }
+    .org-node-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.92);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 130px;
+      outline: none;
+    }
+    .org-node-name[contenteditable="true"] {
+      border-bottom: 1px dashed rgba(255,255,255,0.4);
+      cursor: text;
+      max-width: 130px;
+    }
+    .org-node-role {
+      font-size: 11px;
+      color: rgba(255,255,255,0.40);
+      margin-top: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 130px;
+      outline: none;
+    }
+    .org-node-role[contenteditable="true"] {
+      border-bottom: 1px dashed rgba(255,255,255,0.2);
+      cursor: text;
+    }
+    /* Semáforo dot */
+    .org-semaforo {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(0,0,0,0.3);
+      flex-shrink: 0;
+    }
+    /* Count badge */
+    .org-count-badge {
+      position: absolute;
+      top: 4px;
+      right: 22px;
+      min-width: 16px;
+      height: 16px;
+      border-radius: 9999px;
+      background: rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.85);
+      font-size: 10px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+    }
+    /* Edit action buttons */
+    .org-node-actions {
+      display: flex;
+      gap: 4px;
+      margin-top: 8px;
+    }
+    .org-action-btn {
+      flex: 1;
+      font-size: 10px;
+      padding: 3px 4px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.55);
+      cursor: pointer;
+      text-align: center;
+      white-space: nowrap;
+      transition: background 0.15s, color 0.15s;
+    }
+    .org-action-btn:hover { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.9); }
+    .org-action-btn.delete { border-color: rgba(239,68,68,0.3); }
+    .org-action-btn.delete:hover { background: rgba(239,68,68,0.2); color: #fca5a5; }
+    /* Avatar in alert/insight card */
+    .assign-avatar {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      font-size: 10px;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+    .assign-avatar .semaforo-dot {
+      position: absolute;
+      bottom: -1px;
+      right: -1px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(15,35,64,0.9);
+    }
   </style>
 </head>
 <body class="gradient-bg min-h-screen text-white">
@@ -317,6 +445,8 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
           class="dtab flex-1 rounded-lg py-2.5 text-sm font-medium transition">💡 Insights</button>
         <button onclick="switchDashTab('benchmark')" id="dtab-benchmark"
           class="dtab flex-1 rounded-lg py-2.5 text-sm font-medium transition">🏆 Benchmark</button>
+        <button onclick="switchDashTab('equipo')" id="dtab-equipo"
+          class="dtab flex-1 rounded-lg py-2.5 text-sm font-medium transition">👥 Equipo</button>
       </div>
 
       <!-- TAB: DASHBOARD -->
@@ -455,6 +585,39 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         </div>
       </div>
 
+      <!-- TAB: EQUIPO -->
+      <div id="tab-equipo" class="hidden">
+        <!-- Toolbar -->
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h3 class="font-semibold text-white/90">Organigrama del equipo</h3>
+            <p class="text-white/40 text-xs mt-0.5">Asigna alertas e insights a miembros del equipo. El semáforo refleja su carga de trabajo en tiempo real.</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 text-xs text-white/50">
+              <span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span>P0
+              <span class="w-2.5 h-2.5 rounded-full bg-orange-400 inline-block ml-1"></span>P1/P2
+              <span class="w-2.5 h-2.5 rounded-full bg-green-500 inline-block ml-1"></span>P3/P4
+              <span class="w-2.5 h-2.5 rounded-full bg-white/30 inline-block ml-1"></span>Sin asignar
+            </div>
+            <button onclick="toggleOrgEditMode()"
+              id="orgEditBtn"
+              class="text-xs px-3 py-1.5 rounded-lg border transition font-medium border-white/20 text-white/50 hover:text-white hover:border-white/40">
+              ✏️ Editar
+            </button>
+          </div>
+        </div>
+        <!-- Org chart container -->
+        <div class="glass rounded-2xl p-6 overflow-x-auto">
+          <div id="orgChartRoot" class="org-chart-wrap flex justify-center min-w-max"></div>
+        </div>
+        <!-- Unassigned items legend -->
+        <div id="unassignedSection" class="mt-6 glass rounded-2xl p-5 hidden">
+          <h4 class="font-semibold text-sm text-white/70 mb-3">Sin asignar</h4>
+          <div id="unassignedList" class="flex flex-wrap gap-2"></div>
+        </div>
+      </div>
+
     </div>
   </main>
 
@@ -489,6 +652,336 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
     let currentAnalysisId = null;
     let currentSlug = null;
     let lastBenchmarkResults = null;
+
+    // ── Equipo / Org Chart State ─────────────────────
+    // itemAssignments: { 'alert_0': 'member_id', 'insight_2': 'member_id', ... }
+    let itemAssignments = {};
+    let orgEditMode = false;
+
+    // Default org chart tree — replaced/extended via UI
+    let orgTree = {
+      id: 'member_director',
+      name: 'Director/a General',
+      role: 'Director/a',
+      dept: 'dir',
+      deptColor: '#3b82f6',
+      children: [
+        {
+          id: 'member_rooms',
+          name: 'Jefe/a de Habitaciones',
+          role: 'Rooms Division',
+          dept: 'rooms',
+          deptColor: '#8b5cf6',
+          children: [
+            { id: 'member_recepcion', name: 'Recepción', role: '', dept: 'rooms', deptColor: '#8b5cf6', children: [] },
+            { id: 'member_limpieza', name: 'Housekeeping', role: '', dept: 'rooms', deptColor: '#8b5cf6', children: [] },
+          ],
+        },
+        {
+          id: 'member_fb',
+          name: 'Jefe/a de F&B',
+          role: 'Food & Beverage',
+          dept: 'fb',
+          deptColor: '#f97316',
+          children: [
+            { id: 'member_restaurante', name: 'Restaurante', role: '', dept: 'fb', deptColor: '#f97316', children: [] },
+          ],
+        },
+        {
+          id: 'member_ops',
+          name: 'Jefe/a de Operaciones',
+          role: 'Operaciones',
+          dept: 'ops',
+          deptColor: '#22c55e',
+          children: [],
+        },
+      ],
+    };
+
+    // ── Org Chart: semáforo computation ─────────────
+    function computeSemaforo(memberId) {
+      // Find all items assigned to this member
+      const assigned = Object.entries(itemAssignments)
+        .filter(([, id]) => id === memberId)
+        .map(([key]) => key);
+
+      if (assigned.length === 0) return { color: '#6b7280', count: 0 }; // grey
+
+      let hasP0 = false, hasP1orP2 = false;
+      assigned.forEach(key => {
+        const [type, idxStr] = key.split('_');
+        const idx = parseInt(idxStr, 10);
+        if (type === 'alert') {
+          const a = detailData.alerts[idx];
+          if (a) {
+            if (a.priority === 'P0') hasP0 = true;
+            else if (a.priority === 'P1' || a.priority === 'P2') hasP1orP2 = true;
+          }
+        }
+        // insights and P3/P4 alerts count as green
+      });
+
+      let color = '#22c55e'; // green by default
+      if (hasP0) color = '#ef4444';
+      else if (hasP1orP2) color = '#fb923c';
+
+      return { color, count: assigned.length };
+    }
+
+    // ── Org Chart: flatten tree to get all members ───
+    function flattenTree(node, result = []) {
+      result.push(node);
+      (node.children || []).forEach(c => flattenTree(c, result));
+      return result;
+    }
+
+    // ── Org Chart: find node by id ───────────────────
+    function findNode(node, id) {
+      if (node.id === id) return node;
+      for (const c of (node.children || [])) {
+        const found = findNode(c, id);
+        if (found) return found;
+      }
+      return null;
+    }
+
+    // ── Org Chart: find parent of node ──────────────
+    function findParent(tree, id, parent = null) {
+      if (tree.id === id) return parent;
+      for (const c of (tree.children || [])) {
+        const found = findParent(c, id, tree);
+        if (found !== undefined) return found;
+      }
+      return undefined;
+    }
+
+    // ── Org Chart: remove node from tree ────────────
+    function removeNodeFromTree(tree, id) {
+      tree.children = (tree.children || []).filter(c => c.id !== id);
+      tree.children.forEach(c => removeNodeFromTree(c, id));
+    }
+
+    // ── Org Chart: add subordinate ───────────────────
+    function addSubordinate(parentId) {
+      const parent = findNode(orgTree, parentId);
+      if (!parent) return;
+      const newId = `member_${Date.now()}`;
+      parent.children = parent.children || [];
+      parent.children.push({
+        id: newId,
+        name: 'Nuevo miembro',
+        role: '',
+        dept: parent.dept,
+        deptColor: parent.deptColor,
+        children: [],
+      });
+      renderEquipoTab();
+    }
+
+    // ── Org Chart: delete node ───────────────────────
+    function deleteOrgNode(id) {
+      if (id === orgTree.id) { alert('No se puede eliminar el nodo raíz.'); return; }
+      // Re-assign items assigned to deleted node or its descendants
+      const subtree = findNode(orgTree, id);
+      if (!subtree) return;
+      const descendants = flattenTree(subtree).map(n => n.id);
+      Object.keys(itemAssignments).forEach(key => {
+        if (descendants.includes(itemAssignments[key])) delete itemAssignments[key];
+      });
+      removeNodeFromTree(orgTree, id);
+      renderEquipoTab();
+      rebuildAlertCards();
+    }
+
+    // ── Org Chart: rename node ───────────────────────
+    function renameOrgNode(id, field, value) {
+      const node = findNode(orgTree, id);
+      if (!node) return;
+      node[field] = value.trim();
+    }
+
+    // ── Org Chart: toggle edit mode ──────────────────
+    function toggleOrgEditMode() {
+      orgEditMode = !orgEditMode;
+      const btn = document.getElementById('orgEditBtn');
+      if (orgEditMode) {
+        btn.className = 'text-xs px-3 py-1.5 rounded-lg border transition font-medium border-blue-400/60 text-blue-300 bg-blue-500/10';
+        btn.textContent = '✓ Listo';
+      } else {
+        btn.className = 'text-xs px-3 py-1.5 rounded-lg border transition font-medium border-white/20 text-white/50 hover:text-white hover:border-white/40';
+        btn.textContent = '✏️ Editar';
+      }
+      renderEquipoTab();
+    }
+
+    // ── Org Chart: build assignment dropdown ─────────
+    function buildAssignDropdown(itemKey) {
+      const members = flattenTree(orgTree);
+      const current = itemAssignments[itemKey];
+      const opts = members.map(m =>
+        `<option value="${m.id}" ${m.id === current ? 'selected' : ''}>${m.name}</option>`
+      ).join('');
+      return `<select onchange="assignItem('${itemKey}', this.value)"
+        class="text-xs bg-white/10 border border-white/15 rounded-lg px-2 py-1 text-white/70 focus:border-blue-400 cursor-pointer"
+        onclick="event.stopPropagation()">
+        <option value="">— Asignar —</option>
+        ${opts}
+      </select>`;
+    }
+
+    // ── Assign item to member ────────────────────────
+    function assignItem(itemKey, memberId) {
+      if (memberId) {
+        itemAssignments[itemKey] = memberId;
+      } else {
+        delete itemAssignments[itemKey];
+      }
+      // Re-render semáforos without switching tabs
+      renderEquipoTab();
+      rebuildAlertCards();
+    }
+
+    // ── Rebuild alert/insight card HTML with assignment UI ──
+    function rebuildAlertCards() {
+      const alerts = detailData.alerts;
+      const insights = detailData.insights;
+      if (!alerts.length && !insights.length) return;
+
+      const alertBorderColor = { P0: '#dc2626', P1: '#ef4444', P2: '#f97316', P3: '#eab308', P4: '#22c55e' };
+      const alertTime = { P0: 'AHORA', P1: '< 2h', P2: '< 24h', P3: '72h', P4: '' };
+      const alertIconMap = { P0: '🚨', P1: '🔴', P2: '🟠', P3: '🟡', P4: '🟢' };
+
+      function assignAvatarHtml(itemKey) {
+        const memberId = itemAssignments[itemKey];
+        if (!memberId) return buildAssignDropdown(itemKey);
+        const node = findNode(orgTree, memberId);
+        if (!node) return buildAssignDropdown(itemKey);
+        const initials = node.name.split(/\s+/).slice(0,2).map(w => w[0]).join('').toUpperCase();
+        const sem = computeSemaforo(memberId);
+        const avatarColor = node.deptColor || '#3b82f6';
+        return `<div class="flex items-center gap-1.5">
+          <span class="assign-avatar" style="background:${avatarColor}" title="${node.name}">
+            ${initials}
+            <span class="semaforo-dot" style="background:${sem.color}"></span>
+          </span>
+          ${buildAssignDropdown(itemKey)}
+        </div>`;
+      }
+
+      function buildAlertCardFull(a, idx) {
+        const itemKey = `alert_${idx}`;
+        return `
+          <div onclick="showAlertDetail(${idx})" class="glass rounded-xl px-4 py-3 border-l-4 flex items-center gap-3 cursor-pointer hover:bg-white/5 transition group" style="border-color:${alertBorderColor[a.priority] || '#eab308'}">
+            <span class="text-lg flex-shrink-0">${alertIconMap[a.priority] || '🟡'}</span>
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold text-sm flex items-center gap-2 flex-wrap">
+                ${a.title}
+                ${a.priority === 'P0' ? '<span class="text-xs font-bold px-2 py-0.5 rounded-full bg-red-600 text-white animate-pulse">URGENTE</span>' : ''}
+              </div>
+              <div class="text-white/40 text-xs mt-0.5 line-clamp-2">${a.summary}</div>
+              ${a.guest_name ? `<div class="mt-1"><span class="text-xs bg-white/10 px-2 py-0.5 rounded-full text-white/60">👤 ${a.guest_name}</span></div>` : ''}
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0" onclick="event.stopPropagation()">
+              ${assignAvatarHtml(itemKey)}
+              ${alertTime[a.priority] ? `<span class="text-xs font-medium px-2 py-0.5 rounded-full" style="background:${alertBorderColor[a.priority]}20;color:${alertBorderColor[a.priority]}">${alertTime[a.priority]}</span>` : ''}
+              <span class="text-white/20 group-hover:text-white/50 transition text-sm pointer-events-none">→</span>
+            </div>
+          </div>`;
+      }
+
+      const p0Alerts = alerts.filter(a => a.priority === 'P0');
+      const otherAlerts = alerts.filter(a => a.priority !== 'P0');
+      const guestAlertSection = document.getElementById('guestAlertSection');
+      const guestAlertsList = document.getElementById('guestAlertsList');
+      const alertsEl = document.getElementById('alertsList');
+      if (p0Alerts.length > 0) {
+        guestAlertSection.classList.remove('hidden');
+        guestAlertsList.innerHTML = p0Alerts.map(a => buildAlertCardFull(a, alerts.indexOf(a))).join('');
+      } else {
+        guestAlertSection.classList.add('hidden');
+      }
+      if (otherAlerts.length > 0) {
+        alertsEl.innerHTML = otherAlerts.map(a => buildAlertCardFull(a, alerts.indexOf(a))).join('');
+      }
+
+      // Insights
+      const insightStyle = {
+        strength:    { icon: '✨', bg: 'bg-green-500/10',  border: 'border-green-500/30',  text: 'text-green-400' },
+        warning:     { icon: '⚠️', bg: 'bg-orange-500/10', border: 'border-orange-500/30', text: 'text-orange-400' },
+        opportunity: { icon: '🚀', bg: 'bg-blue-500/10',   border: 'border-blue-500/30',   text: 'text-blue-400' },
+      };
+      document.getElementById('insightsList').innerHTML = insights.map((ins, idx) => {
+        const st = insightStyle[ins.type] || insightStyle.opportunity;
+        const itemKey = `insight_${idx}`;
+        return `<div onclick="showInsightDetail(${idx})" class="${st.bg} border ${st.border} rounded-xl px-4 py-3 flex items-start gap-3 cursor-pointer hover:opacity-90 transition group">
+          <span class="text-xl flex-shrink-0 mt-0.5">${st.icon}</span>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-sm ${st.text}">${ins.title}</div>
+            <div class="text-white/50 text-xs mt-0.5 line-clamp-2">${ins.description}</div>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0 mt-1" onclick="event.stopPropagation()">
+            ${assignAvatarHtml(itemKey)}
+          </div>
+          <span class="text-white/20 group-hover:text-white/50 transition text-sm flex-shrink-0 mt-1 pointer-events-none">→</span>
+        </div>`;
+      }).join('');
+    }
+
+    // ── Org Chart: render a single node recursively ──
+    function renderOrgNode(node) {
+      const sem = computeSemaforo(node.id);
+      const countBadge = sem.count > 0
+        ? `<span class="org-count-badge">${sem.count}</span>` : '';
+      const editable = orgEditMode ? 'contenteditable="true"' : '';
+      const actionsHtml = orgEditMode ? `
+        <div class="org-node-actions">
+          <button class="org-action-btn" onclick="event.stopPropagation();addSubordinate('${node.id}')">+ Sub</button>
+          ${node.id !== orgTree.id ? `<button class="org-action-btn delete" onclick="event.stopPropagation();deleteOrgNode('${node.id}')">🗑️</button>` : ''}
+        </div>` : '';
+
+      const cardHtml = `<div class="org-node-card" data-id="${node.id}">
+        ${countBadge}
+        <span class="org-semaforo" style="background:${sem.color}"></span>
+        <div class="org-node-name" ${editable}
+          onblur="renameOrgNode('${node.id}','name',this.innerText)"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+          >${node.name}</div>
+        <div class="org-node-role" ${editable}
+          onblur="renameOrgNode('${node.id}','role',this.innerText)"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+          >${node.role || (orgEditMode ? 'Cargo...' : '')}</div>
+        ${actionsHtml}
+      </div>`;
+
+      const children = node.children || [];
+      if (children.length === 0) {
+        return `<div class="org-node-group">${cardHtml}</div>`;
+      }
+
+      // Vertical drop + horizontal bar + child columns (recursive, arbitrary depth)
+      const rowConnector = `
+        <div class="org-vert-line"></div>
+        <div style="display:flex;align-items:flex-start;gap:0;position:relative;">
+          <div style="position:absolute;top:0;left:0;right:0;height:2px;background:rgba(255,255,255,0.15)"></div>
+          ${children.map(c => `
+            <div style="display:flex;flex-direction:column;align-items:center;padding:0 16px;position:relative;">
+              <div style="height:20px;width:2px;background:rgba(255,255,255,0.15)"></div>
+              ${renderOrgNode(c)}
+            </div>`).join('')}
+        </div>`;
+
+      return `<div class="org-node-group">
+        ${cardHtml}
+        ${rowConnector}
+      </div>`;
+    }
+
+    // ── Org Chart: render the full Equipo tab ────────
+    function renderEquipoTab() {
+      const root = document.getElementById('orgChartRoot');
+      if (!root) return;
+      root.innerHTML = renderOrgNode(orgTree);
+    }
 
     // ── Focus tags ──────────────────────────────────
     function toggleFocus(btn) {
@@ -702,6 +1195,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       lastAnalysisData = data;
       benchmarkLoaded = false;
       lastBenchmarkResults = null;
+      itemAssignments = {}; // reset assignments on new analysis
       if (data.analysis_id) currentAnalysisId = data.analysis_id;
       const { voc_score, categories, strengths, improvements, summary, alerts = [], insights = [], slug, nps_estimated, compliments = [] } = data;
       if (slug) currentSlug = slug;
@@ -789,43 +1283,13 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         </li>`;
       }).join('');
 
-      // Alerts — compact cards
-      const alertBorderColor = { P0: '#dc2626', P1: '#ef4444', P2: '#f97316', P3: '#eab308', P4: '#22c55e' };
-      const alertTime = { P0: 'AHORA', P1: '< 2h', P2: '< 24h', P3: '72h', P4: '' };
-      const alertIconMap = { P0: '🚨', P1: '🔴', P2: '🟠', P3: '🟡', P4: '🟢' };
+      // Store alert/insight data — cards built by rebuildAlertCards() at end of renderResults
       detailData.alerts = alerts;
-      function buildAlertCard(a, idx) {
-        return `
-          <div onclick="showAlertDetail(${idx})" class="glass rounded-xl px-4 py-3 border-l-4 flex items-center gap-3 cursor-pointer hover:bg-white/5 transition group" style="border-color:${alertBorderColor[a.priority] || '#eab308'}">
-            <span class="text-lg flex-shrink-0">${alertIconMap[a.priority] || '🟡'}</span>
-            <div class="flex-1 min-w-0">
-              <div class="font-semibold text-sm flex items-center gap-2 flex-wrap">
-                ${a.title}
-                ${a.priority === 'P0' ? '<span class="text-xs font-bold px-2 py-0.5 rounded-full bg-red-600 text-white animate-pulse">URGENTE</span>' : ''}
-              </div>
-              <div class="text-white/40 text-xs mt-0.5 line-clamp-2">${a.summary}</div>
-              ${a.guest_name ? `<div class="mt-1"><span class="text-xs bg-white/10 px-2 py-0.5 rounded-full text-white/60">👤 ${a.guest_name}</span></div>` : ''}
-            </div>
-            <div class="flex items-center gap-2 flex-shrink-0">
-              ${alertTime[a.priority] ? `<span class="text-xs font-medium px-2 py-0.5 rounded-full" style="background:${alertBorderColor[a.priority]}20;color:${alertBorderColor[a.priority]}">${alertTime[a.priority]}</span>` : ''}
-              <span class="text-white/20 group-hover:text-white/50 transition text-sm">→</span>
-            </div>
-          </div>`;
-      }
-      const p0Alerts = alerts.filter(a => a.priority === 'P0');
-      const otherAlerts = alerts.filter(a => a.priority !== 'P0');
-      const guestAlertSection = document.getElementById('guestAlertSection');
-      const guestAlertsList = document.getElementById('guestAlertsList');
-      const alertsEl = document.getElementById('alertsList');
-      if (p0Alerts.length > 0) {
-        guestAlertSection.classList.remove('hidden');
-        guestAlertsList.innerHTML = p0Alerts.map(a => buildAlertCard(a, alerts.indexOf(a))).join('');
-      } else {
-        guestAlertSection.classList.add('hidden');
-      }
-      if (otherAlerts.length > 0) {
-        alertsEl.innerHTML = otherAlerts.map(a => buildAlertCard(a, alerts.indexOf(a))).join('');
-      }
+      detailData.insights = insights;
+      // Seed DOM placeholders so sections exist before rebuildAlertCards runs
+      document.getElementById('guestAlertSection').classList.add('hidden');
+      document.getElementById('alertsList').innerHTML = '<p class="text-white/30 text-sm">No se detectaron alertas en las reviews analizadas.</p>';
+      document.getElementById('insightsList').innerHTML = '';
 
       // Felicitaciones
       const complimentsEl = document.getElementById('complimentsList');
@@ -840,25 +1304,6 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
             </div>
           </div>`).join('');
       }
-
-      // Insights — compact cards
-      const insightStyle = {
-        strength:    { icon: '✨', bg: 'bg-green-500/10',  border: 'border-green-500/30',  text: 'text-green-400',  quoteBar: '#22c55e' },
-        warning:     { icon: '⚠️', bg: 'bg-orange-500/10', border: 'border-orange-500/30', text: 'text-orange-400', quoteBar: '#f97316' },
-        opportunity: { icon: '🚀', bg: 'bg-blue-500/10',   border: 'border-blue-500/30',   text: 'text-blue-400',   quoteBar: '#3b82f6' },
-      };
-      detailData.insights = insights;
-      document.getElementById('insightsList').innerHTML = insights.map((ins, idx) => {
-        const st = insightStyle[ins.type] || insightStyle.opportunity;
-        return `<div onclick="showInsightDetail(${idx})" class="${st.bg} border ${st.border} rounded-xl px-4 py-3 flex items-start gap-3 cursor-pointer hover:opacity-90 transition group">
-          <span class="text-xl flex-shrink-0 mt-0.5">${st.icon}</span>
-          <div class="flex-1 min-w-0">
-            <div class="font-semibold text-sm ${st.text}">${ins.title}</div>
-            <div class="text-white/50 text-xs mt-0.5 line-clamp-2">${ins.description}</div>
-          </div>
-          <span class="text-white/20 group-hover:text-white/50 transition text-sm flex-shrink-0 mt-1">→</span>
-        </div>`;
-      }).join('');
 
       // Share URL
       if (slug) {
@@ -881,16 +1326,19 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
 
       setStep(3);
       switchDashTab('dashboard');
+      // Build alert/insight cards with assignment UI
+      rebuildAlertCards();
     }
 
     // ── Dashboard Tabs ───────────────────────────────
     function switchDashTab(tab) {
-      ['dashboard','alertas','insights','benchmark'].forEach(t => {
+      ['dashboard','alertas','insights','benchmark','equipo'].forEach(t => {
         document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
         const btn = document.getElementById(`dtab-${t}`);
         btn.className = `dtab flex-1 rounded-lg py-2.5 text-sm font-medium transition ${t === tab ? 'bg-white/15 text-white' : 'text-white/40 hover:text-white/70'}`;
       });
       if (tab === 'benchmark') initBenchmarkTab();
+      if (tab === 'equipo') renderEquipoTab();
     }
 
     // ── Detail Panel ─────────────────────────────────
