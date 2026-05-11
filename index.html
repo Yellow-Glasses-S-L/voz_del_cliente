@@ -574,10 +574,37 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
 
         <!-- Results -->
         <div id="benchmark-results" class="hidden space-y-6">
+          <!-- Competitor management -->
+          <div class="glass rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-semibold text-white/80">Competidores analizados</h3>
+              <button onclick="toggleAddCompetitor()" class="text-xs text-blue-400 hover:text-blue-300 transition">+ Agregar hotel</button>
+            </div>
+            <div id="benchmark-active-competitors" class="flex flex-wrap gap-2"></div>
+            <div id="add-competitor-form" class="hidden mt-4 flex flex-col sm:flex-row gap-2">
+              <input id="new-competitor-input" type="text" placeholder="Ej: Hotel Westin Palace"
+                class="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/30 focus:outline-none focus:border-blue-400"
+                onkeydown="if(event.key==='Enter') addBenchmarkCompetitor()" />
+              <button onclick="addBenchmarkCompetitor()"
+                class="bg-blue-600 hover:bg-blue-500 transition rounded-xl px-5 py-2.5 text-sm font-semibold whitespace-nowrap">
+                Agregar y re-analizar
+              </button>
+            </div>
+          </div>
+
+          <!-- Radar -->
           <div class="glass rounded-2xl p-6">
             <h3 class="font-semibold mb-4 text-white/80">Radar comparativo</h3>
             <div class="relative h-80"><canvas id="benchmarkRadar"></canvas></div>
           </div>
+
+          <!-- Competitive insights -->
+          <div class="glass rounded-2xl p-6">
+            <h3 class="font-semibold mb-4 text-white/80">Insights competitivos</h3>
+            <div id="benchmark-insights" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+          </div>
+
+          <!-- Scores table -->
           <div class="glass rounded-2xl p-6 overflow-x-auto">
             <h3 class="font-semibold mb-4 text-white/80">Scores por hotel</h3>
             <div id="benchmarkTable"></div>
@@ -1562,6 +1589,10 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
 
       // If we have stored benchmark results from a loaded analysis, render them now
       if (lastBenchmarkResults && !benchmarkLoaded) {
+        // Restore competitors from saved results if hotelProfile.competitors is empty
+        if (!hotelProfile.competitors?.length) {
+          hotelProfile.competitors = lastBenchmarkResults.filter(h => !h.is_current).map(h => h.name);
+        }
         renderBenchmarkResults(lastBenchmarkResults);
         lastBenchmarkResults = null;
         return;
@@ -1622,10 +1653,143 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       { bg: 'rgba(239,68,68,0.2)',  border: '#ef4444' },   // red
     ];
 
+    function toggleAddCompetitor() {
+      const form = document.getElementById('add-competitor-form');
+      form.classList.toggle('hidden');
+      if (!form.classList.contains('hidden')) {
+        document.getElementById('new-competitor-input').focus();
+      }
+    }
+
+    function addBenchmarkCompetitor() {
+      const input = document.getElementById('new-competitor-input');
+      const name = input.value.trim();
+      if (!name) return;
+      if (!hotelProfile.competitors) hotelProfile.competitors = [];
+      if (hotelProfile.competitors.some(c => c.toLowerCase() === name.toLowerCase())) {
+        alert('Ese hotel ya está en la lista de competidores.');
+        return;
+      }
+      hotelProfile.competitors.push(name);
+      input.value = '';
+      document.getElementById('add-competitor-form').classList.add('hidden');
+      runBenchmark();
+    }
+
+    function renderBenchmarkInsights(results) {
+      const current = results.find(h => h.is_current);
+      if (!current) return;
+      const competitors = results.filter(h => !h.is_current);
+      const keys = Object.keys(CATEGORY_LABELS);
+
+      // Ranking position by VOC score
+      const sorted = [...results].sort((a, b) => b.voc_score - a.voc_score);
+      const rank = sorted.findIndex(h => h.is_current) + 1;
+
+      // Categories where current hotel leads all competitors
+      const leadingCats = keys.filter(k => {
+        const myScore = current.categories[k] ?? 0;
+        return results.every(h => h.is_current || (h.categories[k] ?? 0) <= myScore);
+      });
+
+      // Top 3 gaps (categories where current hotel is furthest behind the leader)
+      const gaps = keys.map(k => {
+        const leaderScore = Math.max(...results.map(h => h.categories[k] ?? 0));
+        const myScore = current.categories[k] ?? 0;
+        return { key: k, gap: Math.round(leaderScore - myScore), leaderScore };
+      }).filter(g => g.gap > 0).sort((a, b) => b.gap - a.gap).slice(0, 3);
+
+      // Market average (competitors only)
+      const marketAvg = competitors.length
+        ? Math.round(competitors.reduce((s, h) => s + h.voc_score, 0) / competitors.length)
+        : null;
+
+      // Closest competitor
+      const closest = competitors.length
+        ? competitors.reduce((prev, curr) =>
+            Math.abs(curr.voc_score - current.voc_score) < Math.abs(prev.voc_score - current.voc_score) ? curr : prev)
+        : null;
+
+      const insightsEl = document.getElementById('benchmark-insights');
+      const rankColor = rank === 1 ? '#22c55e' : rank === 2 ? '#f59e0b' : '#ef4444';
+      const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '📊';
+
+      const cards = [];
+
+      // Card 1: Ranking
+      cards.push(`
+        <div class="bg-white/5 rounded-xl p-4 flex flex-col gap-1">
+          <p class="text-xs text-white/40 uppercase tracking-wide font-semibold">Posición</p>
+          <div class="flex items-center gap-2 mt-1">
+            <span class="text-3xl">${rankEmoji}</span>
+            <span class="text-2xl font-extrabold" style="color:${rankColor}">#${rank}</span>
+            <span class="text-white/40 text-sm">de ${results.length}</span>
+          </div>
+          <p class="text-xs text-white/50 mt-1">VOC Score: <strong class="text-white">${current.voc_score}</strong></p>
+        </div>
+      `);
+
+      // Card 2: Market average vs current
+      if (marketAvg !== null) {
+        const diff = current.voc_score - marketAvg;
+        const sign = diff >= 0 ? '+' : '';
+        const diffColor = diff >= 0 ? '#22c55e' : '#ef4444';
+        cards.push(`
+          <div class="bg-white/5 rounded-xl p-4 flex flex-col gap-1">
+            <p class="text-xs text-white/40 uppercase tracking-wide font-semibold">vs. Media del mercado</p>
+            <div class="flex items-baseline gap-2 mt-1">
+              <span class="text-2xl font-extrabold" style="color:${diffColor}">${sign}${diff}</span>
+              <span class="text-white/40 text-sm">pts</span>
+            </div>
+            <p class="text-xs text-white/50 mt-1">Media competencia: <strong class="text-white">${marketAvg}</strong></p>
+          </div>
+        `);
+      }
+
+      // Card 3: Strengths (leading categories)
+      if (leadingCats.length > 0) {
+        cards.push(`
+          <div class="bg-white/5 rounded-xl p-4 flex flex-col gap-1">
+            <p class="text-xs text-white/40 uppercase tracking-wide font-semibold">Lidera en</p>
+            <div class="flex flex-wrap gap-1.5 mt-2">
+              ${leadingCats.map(k => `<span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-lg">${CATEGORY_LABELS[k]}</span>`).join('')}
+            </div>
+          </div>
+        `);
+      }
+
+      // Card 4: Biggest gap to close
+      if (gaps.length > 0) {
+        cards.push(`
+          <div class="bg-white/5 rounded-xl p-4 flex flex-col gap-1">
+            <p class="text-xs text-white/40 uppercase tracking-wide font-semibold">Mayor brecha a cerrar</p>
+            <div class="flex flex-col gap-2 mt-2">
+              ${gaps.map(g => `
+                <div class="flex items-center justify-between text-xs">
+                  <span class="text-white/70">${CATEGORY_LABELS[g.key]}</span>
+                  <span class="text-orange-400 font-semibold">-${g.gap} pts</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `);
+      }
+
+      insightsEl.innerHTML = cards.join('');
+    }
+
     function renderBenchmarkResults(results) {
       benchmarkLoaded = true;
       document.getElementById('benchmark-ready').classList.add('hidden');
       document.getElementById('benchmark-results').classList.remove('hidden');
+
+      // Update active competitors panel
+      const activeComp = document.getElementById('benchmark-active-competitors');
+      activeComp.innerHTML = hotelProfile.competitors.map(c =>
+        `<span class="text-xs bg-white/10 px-3 py-1.5 rounded-full text-white/70">${c}</span>`).join('');
+
+      // Render competitive insights
+      renderBenchmarkInsights(results);
 
       const keys = Object.keys(CATEGORY_LABELS);
       const labels = keys.map(k => CATEGORY_LABELS[k]);
