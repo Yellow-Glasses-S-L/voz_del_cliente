@@ -819,12 +819,13 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       const members = flattenTree(orgTree);
       const current = itemAssignments[itemKey];
       const opts = members.map(m =>
-        `<option value="${m.id}" ${m.id === current ? 'selected' : ''}>${m.name}</option>`
+        `<option value="${m.id}" ${m.id === current ? 'selected' : ''} style="background:#1e3a5f;color:#fff">${m.name}</option>`
       ).join('');
       return `<select onchange="assignItem('${itemKey}', this.value)"
-        class="text-xs bg-white/10 border border-white/15 rounded-lg px-2 py-1 text-white/70 focus:border-blue-400 cursor-pointer"
+        class="text-xs border border-white/15 rounded-lg px-2 py-1 text-white/70 focus:border-blue-400 cursor-pointer"
+        style="background:#1e3a5f"
         onclick="event.stopPropagation()">
-        <option value="">— Asignar —</option>
+        <option value="" style="background:#1e3a5f;color:#fff">— Asignar —</option>
         ${opts}
       </select>`;
     }
