@@ -187,21 +187,14 @@
 
         <!-- Google Places tab -->
         <div id="source-google">
-          <div class="flex items-start gap-3 bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-6">
-            <span class="text-blue-400 text-lg mt-0.5">ℹ️</span>
+          <div class="flex items-start gap-3 bg-green-500/10 border border-green-500/30 rounded-xl p-4 mb-6">
+            <span class="text-green-400 text-lg mt-0.5">✓</span>
             <div class="text-sm text-white/70">
-              <strong class="text-white">Google Places API</strong> — Obtén las reviews reales de tu hotel automáticamente.
-              Necesitas una API key de Google (gratuita hasta cierto volumen).
-              <a href="https://console.cloud.google.com/apis/library/places-backend.googleapis.com" target="_blank" class="text-blue-400 hover:underline ml-1">Activar Places API →</a>
+              <strong class="text-white">Google Places conectado</strong> — Busca cualquier hotel y obtendrás sus reviews reales de Google automáticamente.
             </div>
           </div>
 
           <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-white/70 mb-2">Google Places API Key</label>
-              <input id="googleApiKey" type="password" placeholder="AIza..."
-                class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30 font-mono text-sm" />
-            </div>
             <div>
               <label class="block text-sm font-medium text-white/70 mb-2">Buscar hotel en Google</label>
               <div class="flex gap-2">
@@ -435,9 +428,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
 
     // ── Google Places ────────────────────────────────
     async function searchGooglePlaces() {
-      const apiKey = document.getElementById('googleApiKey').value.trim();
       const query = document.getElementById('googleSearchQuery').value.trim();
-      if (!apiKey) { alert('Introduce tu Google Places API Key primero.'); return; }
       if (!query) { alert('Introduce el nombre del hotel a buscar.'); return; }
 
       document.getElementById('googleSearchBtnText').textContent = 'Buscando...';
@@ -448,7 +439,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         const res = await fetch(FUNCTION_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'search_places', query, api_key: apiKey }),
+          body: JSON.stringify({ action: 'search_places', query }),
         });
         const data = await res.json();
 
@@ -495,14 +486,13 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
 
       if (activeTab === 'google') {
         if (!selectedPlaceId) { alert('Selecciona un hotel de los resultados de Google.'); return; }
-        const apiKey = document.getElementById('googleApiKey').value.trim();
 
         setLoading(true);
         try {
           const res = await fetch(FUNCTION_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'fetch_reviews', place_id: selectedPlaceId, api_key: apiKey }),
+            body: JSON.stringify({ action: 'fetch_reviews', place_id: selectedPlaceId }),
           });
           const data = await res.json();
           if (data.error) throw new Error(data.error);
