@@ -698,7 +698,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
               <strong>Acción:</strong> ${a.immediate_action}
             </div>
             ${a.suggested_response ? `<div class="text-xs text-white/40 mt-2 italic">"${a.suggested_response}"</div>` : ''}
-            ${a.evidence?.length ? `<div class="mt-2 flex flex-wrap gap-2">${a.evidence.map((e: string) => `<span class="text-xs bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white/40 italic">"${e}"</span>`).join('')}</div>` : ''}
+            ${a.evidence?.length ? `<div class="mt-2 flex flex-wrap gap-2">${a.evidence.map(e => `<span class="text-xs bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white/40 italic">"${e}"</span>`).join('')}</div>` : ''}
           </div>`;
         }).join('');
       }
@@ -764,8 +764,12 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         stars: data.hotel.stars, type: data.hotel.type,
         competitors: data.hotel.competitors || [], focus: data.hotel.focus_areas || [],
       };
+      hotelBranding = {
+        photo_url: data.hotel.photo_url || null,
+        logo_url: data.hotel.logo_url || null,
+      };
       const a = data.analysis;
-      if (a) renderResults({ ...a, categories: a.categories, alerts: a.alerts || [], insights: a.insights || [], slug }, a.source || 'Guardado');
+      if (a) renderResults({ ...a, alerts: a.alerts || [], insights: a.insights || [], slug }, a.source || 'Guardado');
     }
 
     // ── Init ─────────────────────────────────────────
