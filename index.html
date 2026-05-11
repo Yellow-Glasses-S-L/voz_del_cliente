@@ -11,12 +11,23 @@
     * { font-family: 'Inter', sans-serif; }
     .gradient-bg { background: linear-gradient(135deg, #1e3a5f 0%, #0f2340 100%); }
     .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-    .score-ring { background: conic-gradient(from 0deg, #22c55e var(--pct), #1e3a5f var(--pct)); }
-    .fade-in { animation: fadeIn 0.5s ease-in-out; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-    .spinner { border: 3px solid rgba(255,255,255,0.2); border-top-color: #fff; border-radius: 50%; width: 24px; height: 24px; animation: spin 0.8s linear infinite; }
+    .fade-in { animation: fadeIn 0.4s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .spinner { border: 3px solid rgba(255,255,255,0.2); border-top-color: #fff; border-radius: 50%; width: 22px; height: 22px; animation: spin 0.8s linear infinite; display: inline-block; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    textarea:focus, input:focus { outline: none; box-shadow: 0 0 0 2px #3b82f6; }
+    input, textarea, select { outline: none; transition: box-shadow 0.2s; }
+    input:focus, textarea:focus, select:focus { box-shadow: 0 0 0 2px #3b82f6; }
+    .step-dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; transition: all 0.3s; }
+    .step-dot.active { background: #3b82f6; color: white; }
+    .step-dot.done { background: #22c55e; color: white; }
+    .step-dot.inactive { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.4); }
+    .tab-btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; transition: all 0.2s; cursor: pointer; }
+    .tab-btn.active { background: #3b82f6; color: white; }
+    .tab-btn.inactive { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); }
+    .tab-btn.inactive:hover { background: rgba(255,255,255,0.12); }
+    .source-card { border: 2px solid transparent; border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.2s; background: rgba(255,255,255,0.05); }
+    .source-card.selected { border-color: #3b82f6; background: rgba(59,130,246,0.1); }
+    .source-card:hover { background: rgba(255,255,255,0.08); }
   </style>
 </head>
 <body class="gradient-bg min-h-screen text-white">
@@ -31,103 +42,272 @@
     <div class="text-xs text-white/40">Powered by Claude AI</div>
   </header>
 
-  <!-- Main -->
-  <main class="max-w-4xl mx-auto px-6 py-12">
+  <main class="max-w-3xl mx-auto px-6 py-10">
 
-    <!-- Hero -->
-    <div class="text-center mb-12">
-      <h1 class="text-4xl font-800 font-extrabold mb-3 leading-tight">
-        Convierte las reviews de tu hotel<br/>
-        <span class="text-blue-400">en inteligencia operativa</span>
-      </h1>
-      <p class="text-white/60 text-lg">Pega las reviews, obtén tu VOC Score y los insights accionables en segundos.</p>
+    <!-- Step Indicator -->
+    <div id="stepIndicator" class="flex items-center justify-center gap-0 mb-10">
+      <div class="flex items-center gap-2">
+        <div id="dot1" class="step-dot active">1</div>
+        <span id="label1" class="text-sm text-white/70 font-medium hidden sm:block">Perfil del hotel</span>
+      </div>
+      <div class="w-10 h-px bg-white/20 mx-3"></div>
+      <div class="flex items-center gap-2">
+        <div id="dot2" class="step-dot inactive">2</div>
+        <span id="label2" class="text-sm text-white/40 hidden sm:block">Fuentes de reviews</span>
+      </div>
+      <div class="w-10 h-px bg-white/20 mx-3"></div>
+      <div class="flex items-center gap-2">
+        <div id="dot3" class="step-dot inactive">3</div>
+        <span id="label3" class="text-sm text-white/40 hidden sm:block">Resultados</span>
+      </div>
     </div>
 
-    <!-- Input Card -->
-    <div class="glass rounded-2xl p-8 mb-8">
-      <div class="mb-6">
-        <label class="block text-sm font-medium text-white/70 mb-2">Nombre del hotel</label>
-        <input
-          id="hotelName"
-          type="text"
-          placeholder="Ej: Hotel Gran Vía Madrid"
-          class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30 transition"
-        />
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- STEP 1: Hotel Profile                       -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div id="step1" class="fade-in">
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-extrabold mb-2">Perfil de tu hotel</h1>
+        <p class="text-white/50">Cuéntanos sobre tu establecimiento para personalizar el análisis</p>
       </div>
 
-      <div class="mb-6">
-        <label class="block text-sm font-medium text-white/70 mb-2">
-          Reviews
-          <span class="text-white/40 font-normal ml-2">— Una por línea o separadas por salto de párrafo</span>
-        </label>
-        <textarea
-          id="reviewsInput"
-          rows="8"
-          placeholder="Pega aquí las reviews de Google, Booking, TripAdvisor...
+      <div class="glass rounded-2xl p-8 space-y-6">
 
-Ejemplo:
-Habitación muy limpia y cómoda. El personal fue increíblemente amable y nos ayudó con todo. Sin embargo, el WiFi era muy lento y el desayuno escaso para el precio que pagamos.
-
-Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido de la calle. El check-in fue rápido y el recepcionista muy atento."
-          class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30 resize-none transition text-sm leading-relaxed"
-        ></textarea>
-        <div class="flex justify-between items-center mt-2">
-          <span id="reviewCount" class="text-xs text-white/40">0 reviews detectadas</span>
-          <button onclick="loadDemo()" class="text-xs text-blue-400 hover:text-blue-300 transition">Cargar reviews de demo →</button>
+        <!-- Name + Location -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-white/70 mb-2">Nombre del hotel *</label>
+            <input id="hotelName" type="text" placeholder="Hotel Gran Vía Madrid"
+              class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-white/70 mb-2">Ciudad / Ubicación *</label>
+            <input id="hotelLocation" type="text" placeholder="Madrid, España"
+              class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30" />
+          </div>
         </div>
-      </div>
 
-      <button
-        id="analyzeBtn"
-        onclick="analyzeReviews()"
-        class="w-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 transition rounded-xl py-4 font-semibold text-lg flex items-center justify-center gap-3"
-      >
-        <span id="btnText">Analizar reviews</span>
-        <div id="btnSpinner" class="spinner hidden"></div>
-      </button>
+        <!-- Stars + Type -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-white/70 mb-2">Categoría</label>
+            <select id="hotelStars" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white">
+              <option value="" class="bg-gray-900">Selecciona...</option>
+              <option value="5" class="bg-gray-900">⭐⭐⭐⭐⭐ 5 estrellas</option>
+              <option value="4" class="bg-gray-900">⭐⭐⭐⭐ 4 estrellas</option>
+              <option value="3" class="bg-gray-900">⭐⭐⭐ 3 estrellas</option>
+              <option value="2" class="bg-gray-900">⭐⭐ 2 estrellas</option>
+              <option value="boutique" class="bg-gray-900">🏠 Boutique</option>
+              <option value="hostal" class="bg-gray-900">🛌 Hostal / B&B</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-white/70 mb-2">Tipo de hotel</label>
+            <select id="hotelType" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white">
+              <option value="" class="bg-gray-900">Selecciona...</option>
+              <option value="urbano" class="bg-gray-900">🏙️ Urbano / City</option>
+              <option value="resort" class="bg-gray-900">🏖️ Resort / Vacacional</option>
+              <option value="boutique" class="bg-gray-900">✨ Boutique / Lifestyle</option>
+              <option value="negocios" class="bg-gray-900">💼 Negocios / MICE</option>
+              <option value="rural" class="bg-gray-900">🌿 Rural / Naturaleza</option>
+              <option value="aeropuerto" class="bg-gray-900">✈️ Aeropuerto</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Director info -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-white/70 mb-2">Tu nombre</label>
+            <input id="directorName" type="text" placeholder="Ej: Carlos García"
+              class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-white/70 mb-2">Tu rol</label>
+            <select id="directorRole" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white">
+              <option value="" class="bg-gray-900">Selecciona...</option>
+              <option value="director_general" class="bg-gray-900">Director General</option>
+              <option value="director_operaciones" class="bg-gray-900">Director de Operaciones</option>
+              <option value="revenue_manager" class="bg-gray-900">Revenue Manager</option>
+              <option value="director_experiencia" class="bg-gray-900">Dir. Experiencia del Cliente</option>
+              <option value="marketing" class="bg-gray-900">Director de Marketing</option>
+              <option value="otro" class="bg-gray-900">Otro</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Competitors -->
+        <div>
+          <label class="block text-sm font-medium text-white/70 mb-2">
+            Competidores principales
+            <span class="text-white/40 font-normal ml-1">(separados por coma)</span>
+          </label>
+          <input id="competitors" type="text" placeholder="Ej: Hotel Ritz Madrid, Hotel Westin Palace, NH Collection Gran Vía"
+            class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30" />
+        </div>
+
+        <!-- Focus areas -->
+        <div>
+          <label class="block text-sm font-medium text-white/70 mb-3">¿En qué quieres mejorar? <span class="text-white/40 font-normal">(opcional, selecciona varios)</span></label>
+          <div class="flex flex-wrap gap-2" id="focusAreas">
+            <button type="button" onclick="toggleFocus(this)" data-value="experiencia_cliente" class="focus-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">Experiencia del cliente</button>
+            <button type="button" onclick="toggleFocus(this)" data-value="reputacion_online" class="focus-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">Reputación online</button>
+            <button type="button" onclick="toggleFocus(this)" data-value="fb" class="focus-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">F&B</button>
+            <button type="button" onclick="toggleFocus(this)" data-value="staff" class="focus-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">Staff y formación</button>
+            <button type="button" onclick="toggleFocus(this)" data-value="instalaciones" class="focus-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">Instalaciones</button>
+            <button type="button" onclick="toggleFocus(this)" data-value="revenue" class="focus-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">Revenue & pricing</button>
+            <button type="button" onclick="toggleFocus(this)" data-value="digitalizacion" class="focus-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">Digitalización</button>
+            <button type="button" onclick="toggleFocus(this)" data-value="sostenibilidad" class="focus-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">Sostenibilidad</button>
+          </div>
+        </div>
+
+        <button onclick="goToStep2()"
+          class="w-full bg-blue-600 hover:bg-blue-500 transition rounded-xl py-4 font-semibold text-lg mt-2">
+          Continuar → Importar reviews
+        </button>
+      </div>
     </div>
 
-    <!-- Results (hidden until analysis) -->
-    <div id="results" class="hidden fade-in">
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- STEP 2: Import Reviews                      -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div id="step2" class="hidden fade-in">
+      <div class="text-center mb-8">
+        <h2 class="text-3xl font-extrabold mb-2">Importar reviews</h2>
+        <p class="text-white/50">Elige cómo quieres cargar las opiniones de <span id="hotelNameStep2" class="text-white font-medium"></span></p>
+      </div>
 
-      <!-- VOC Score -->
-      <div class="glass rounded-2xl p-8 mb-6 text-center">
-        <p class="text-white/60 text-sm font-medium uppercase tracking-widest mb-4">VOC Score™</p>
-        <div id="hotelNameDisplay" class="text-xl font-semibold mb-6 text-white/80"></div>
-        <div class="flex items-center justify-center mb-6">
-          <div class="relative w-48 h-48">
-            <canvas id="scoreGauge"></canvas>
-            <div class="absolute inset-0 flex flex-col items-center justify-center">
-              <span id="vocScoreNum" class="text-5xl font-extrabold"></span>
-              <span class="text-white/50 text-sm">/ 100</span>
+      <!-- Source tabs -->
+      <div class="flex gap-2 mb-6">
+        <button class="tab-btn active" onclick="switchTab('google')" id="tab-google">🌐 Google Places</button>
+        <button class="tab-btn inactive" onclick="switchTab('manual')" id="tab-manual">✏️ Manual / CSV</button>
+      </div>
+
+      <div class="glass rounded-2xl p-8">
+
+        <!-- Google Places tab -->
+        <div id="source-google">
+          <div class="flex items-start gap-3 bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-6">
+            <span class="text-blue-400 text-lg mt-0.5">ℹ️</span>
+            <div class="text-sm text-white/70">
+              <strong class="text-white">Google Places API</strong> — Obtén las reviews reales de tu hotel automáticamente.
+              Necesitas una API key de Google (gratuita hasta cierto volumen).
+              <a href="https://console.cloud.google.com/apis/library/places-backend.googleapis.com" target="_blank" class="text-blue-400 hover:underline ml-1">Activar Places API →</a>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-white/70 mb-2">Google Places API Key</label>
+              <input id="googleApiKey" type="password" placeholder="AIza..."
+                class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30 font-mono text-sm" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-white/70 mb-2">Buscar hotel en Google</label>
+              <div class="flex gap-2">
+                <input id="googleSearchQuery" type="text" placeholder="Ej: Hotel Gran Vía Madrid"
+                  class="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30" />
+                <button onclick="searchGooglePlaces()"
+                  class="bg-blue-600 hover:bg-blue-500 transition rounded-xl px-5 py-3 font-medium flex items-center gap-2 whitespace-nowrap">
+                  <span id="googleSearchBtnText">Buscar</span>
+                  <div id="googleSpinner" class="spinner hidden" style="width:18px;height:18px;border-width:2px"></div>
+                </button>
+              </div>
+            </div>
+
+            <!-- Google results -->
+            <div id="googleResults" class="hidden space-y-2 mt-2"></div>
+
+            <!-- Selected place info -->
+            <div id="selectedPlaceInfo" class="hidden bg-green-500/10 border border-green-500/30 rounded-xl p-4">
+              <div class="flex items-center gap-2 text-green-400 text-sm font-medium mb-1">
+                <span>✓</span> <span id="selectedPlaceName"></span>
+              </div>
+              <div class="text-white/50 text-xs" id="selectedPlaceDetails"></div>
             </div>
           </div>
         </div>
-        <div id="scoreLabel" class="text-lg font-medium"></div>
-        <p id="summaryText" class="text-white/60 text-sm mt-4 max-w-2xl mx-auto leading-relaxed"></p>
+
+        <!-- Manual tab -->
+        <div id="source-manual" class="hidden">
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-white/70 mb-2">
+              Pega las reviews
+              <span class="text-white/40 font-normal ml-1">— Una por párrafo (línea en blanco entre cada una)</span>
+            </label>
+            <textarea id="reviewsInput" rows="9"
+              placeholder="Pega aquí las reviews de Google, Booking, TripAdvisor...
+
+Habitación muy limpia y cómoda. El personal fue increíblemente amable. Sin embargo, el WiFi era muy lento y el desayuno escaso para el precio que pagamos.
+
+Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido de la calle. El check-in fue rápido y el recepcionista muy atento."
+              class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30 resize-none text-sm leading-relaxed"></textarea>
+            <div class="flex justify-between mt-2">
+              <span id="reviewCount" class="text-xs text-white/40">0 reviews detectadas</span>
+              <button onclick="loadDemo()" class="text-xs text-blue-400 hover:text-blue-300 transition">Cargar demo →</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex gap-3 mt-6">
+          <button onclick="goToStep1()" class="flex-1 bg-white/10 hover:bg-white/15 transition rounded-xl py-3.5 font-medium">
+            ← Atrás
+          </button>
+          <button id="analyzeBtn" onclick="analyzeReviews()"
+            class="flex-2 flex-grow bg-blue-600 hover:bg-blue-500 transition rounded-xl py-3.5 font-semibold flex items-center justify-center gap-3">
+            <span id="btnText">Analizar con IA</span>
+            <div id="btnSpinner" class="spinner hidden" style="width:20px;height:20px;border-width:2px"></div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- STEP 3: Results Dashboard                   -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div id="step3" class="hidden fade-in">
+
+      <!-- Back button -->
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h2 class="text-2xl font-extrabold" id="resultHotelName"></h2>
+          <p class="text-white/50 text-sm" id="resultHotelMeta"></p>
+        </div>
+        <button onclick="goToStep2()" class="text-sm text-white/40 hover:text-white transition flex items-center gap-1">← Nueva análisis</button>
       </div>
 
-      <!-- Radar + Strengths/Improvements -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <!-- VOC Score -->
+      <div class="glass rounded-2xl p-8 mb-6 text-center">
+        <p class="text-white/50 text-xs font-semibold uppercase tracking-widest mb-4">VOC Score™ Global</p>
+        <div class="flex items-center justify-center mb-4">
+          <div class="relative w-44 h-44">
+            <canvas id="scoreGauge"></canvas>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <span id="vocScoreNum" class="text-5xl font-extrabold"></span>
+              <span class="text-white/40 text-xs">/ 100</span>
+            </div>
+          </div>
+        </div>
+        <div id="scoreLabel" class="text-lg font-semibold mb-3"></div>
+        <p id="summaryText" class="text-white/60 text-sm max-w-2xl mx-auto leading-relaxed"></p>
+      </div>
 
-        <!-- Radar Chart -->
+      <!-- Radar + Bars -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div class="glass rounded-2xl p-6">
-          <h3 class="font-semibold mb-4 text-white/80">Análisis por categoría</h3>
+          <h3 class="font-semibold mb-4 text-white/80">Radar de categorías</h3>
           <div class="relative h-64">
             <canvas id="radarChart"></canvas>
           </div>
         </div>
-
-        <!-- Category Bars -->
         <div class="glass rounded-2xl p-6">
-          <h3 class="font-semibold mb-4 text-white/80">Detalle de categorías</h3>
+          <h3 class="font-semibold mb-4 text-white/80">Score por categoría</h3>
           <div id="categoryBars" class="space-y-3"></div>
         </div>
       </div>
 
       <!-- Strengths & Improvements -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-
         <div class="glass rounded-2xl p-6">
           <h3 class="font-semibold mb-4 flex items-center gap-2">
             <span class="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center text-green-400 text-xs">✓</span>
@@ -135,7 +315,6 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
           </h3>
           <ul id="strengthsList" class="space-y-3"></ul>
         </div>
-
         <div class="glass rounded-2xl p-6">
           <h3 class="font-semibold mb-4 flex items-center gap-2">
             <span class="w-6 h-6 bg-orange-500/20 rounded-full flex items-center justify-center text-orange-400 text-xs">↑</span>
@@ -145,48 +324,103 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         </div>
       </div>
 
-      <!-- CTA -->
-      <div class="glass rounded-2xl p-6 text-center">
-        <p class="text-white/50 text-sm mb-3">¿Quieres ver el benchmark con competidores, alertas en tiempo real y seguimiento histórico?</p>
-        <button onclick="scrollToTop()" class="text-blue-400 hover:text-blue-300 text-sm font-medium transition">
-          Analizar otro hotel →
-        </button>
+      <!-- Competitors placeholder -->
+      <div id="competitorSection" class="glass rounded-2xl p-6 mb-6 hidden">
+        <h3 class="font-semibold mb-3 text-white/80">Benchmark vs. competidores</h3>
+        <p class="text-white/40 text-sm">Añade reviews de tus competidores para ver la comparativa aquí.</p>
+        <div id="competitorList" class="mt-3 flex flex-wrap gap-2"></div>
       </div>
 
     </div>
   </main>
 
   <script>
-    const SUPABASE_URL = 'https://rszagzirtmwutfmntqrz.supabase.co';
-    const FUNCTION_URL = `${SUPABASE_URL}/functions/v1/analyze-reviews`;
+    const FUNCTION_URL = 'https://rszagzirtmwutfmntqrz.supabase.co/functions/v1/analyze-reviews';
 
     const CATEGORY_LABELS = {
-      habitacion: 'Habitación',
-      staff: 'Staff',
-      fb: 'F&B',
-      instalaciones: 'Instalaciones',
-      ubicacion: 'Ubicación',
-      valor: 'Valor',
-      tecnologia: 'Tecnología',
-      sostenibilidad: 'Sostenibilidad',
+      habitacion: 'Habitación', staff: 'Staff', fb: 'F&B',
+      instalaciones: 'Instalaciones', ubicacion: 'Ubicación',
+      valor: 'Valor', tecnologia: 'Tecnología', sostenibilidad: 'Sostenibilidad',
     };
 
     const DEMO_REVIEWS = [
-      "La habitación era espaciosa y muy limpia. El personal de recepción fue excepcional, siempre con una sonrisa y dispuestos a ayudar. La ubicación es perfecta, a dos pasos del metro y del centro histórico. El desayuno estaba bien pero podría tener más opciones saludables. El WiFi fue lento durante toda la estancia, algo frustrante en 2025.",
-      "Hotel con una ubicación inmejorable. Las vistas desde la habitación son espectaculares. Sin embargo, el precio para lo que ofrecen es elevado comparado con otros hoteles de la zona. El personal del restaurante tardó mucho en atendernos. La cama muy cómoda y las sábanas de calidad.",
-      "Tercera vez que me alojo aquí y siempre repito. El equipo humano es lo mejor del hotel: Marta en recepción y el equipo de limpieza son increíbles. La piscina algo pequeña para la temporada alta. El parking interno es caro. En general muy satisfecho.",
-      "Llegamos tarde y nos recibieron con muchísima amabilidad. La habitación estaba perfecta, silenciosa y bien climatizada. El desayuno buffet es de los mejores que he probado en un hotel urbano. Quizás mejoraría la aplicación móvil del hotel, que falla bastante.",
-      "Muy decepcionada con la gestión de nuestra reserva. Hubo un error y nos asignaron una habitación diferente a la reservada. Aunque lo resolvieron, tardaron 2 horas. Las instalaciones están algo anticuadas para el precio. El personal muy educado pero poco eficiente en resolver problemas."
+      "La habitación era espaciosa y muy limpia. El personal de recepción fue excepcional, siempre con una sonrisa. La ubicación es perfecta, a dos pasos del metro. El desayuno estaba bien pero podría tener más opciones. El WiFi fue lento durante toda la estancia.",
+      "Hotel con una ubicación inmejorable. Las vistas son espectaculares. Sin embargo, el precio para lo que ofrecen es elevado. El personal del restaurante tardó mucho en atendernos. La cama muy cómoda y las sábanas de calidad.",
+      "Tercera vez que me alojo aquí y siempre repito. El equipo humano es lo mejor del hotel. La piscina algo pequeña para temporada alta. El parking interno es caro. En general muy satisfecho.",
+      "Llegamos tarde y nos recibieron con muchísima amabilidad. La habitación perfecta, silenciosa y bien climatizada. El desayuno buffet es de los mejores que he probado en un hotel urbano. La aplicación móvil del hotel falla bastante.",
+      "Muy decepcionada con la gestión de nuestra reserva. Hubo un error y tardaron 2 horas en resolverlo. Las instalaciones están algo anticuadas para el precio. El personal muy educado pero poco eficiente."
     ];
 
+    let selectedPlaceId = null;
+    let activeTab = 'google';
     let radarChartInstance = null;
     let gaugeInstance = null;
+    let hotelProfile = {};
 
-    const textarea = document.getElementById('reviewsInput');
-    textarea.addEventListener('input', updateReviewCount);
+    // ── Focus tags ──────────────────────────────────
+    function toggleFocus(btn) {
+      btn.classList.toggle('bg-blue-600');
+      btn.classList.toggle('text-white');
+      btn.classList.toggle('bg-white/10');
+      btn.classList.toggle('text-white/60');
+    }
+
+    function getSelectedFocus() {
+      return [...document.querySelectorAll('.focus-tag.bg-blue-600')].map(b => b.dataset.value);
+    }
+
+    // ── Tabs ────────────────────────────────────────
+    function switchTab(tab) {
+      activeTab = tab;
+      document.getElementById('source-google').classList.toggle('hidden', tab !== 'google');
+      document.getElementById('source-manual').classList.toggle('hidden', tab !== 'manual');
+      document.getElementById('tab-google').className = `tab-btn ${tab === 'google' ? 'active' : 'inactive'}`;
+      document.getElementById('tab-manual').className = `tab-btn ${tab === 'manual' ? 'active' : 'inactive'}`;
+    }
+
+    // ── Steps ────────────────────────────────────────
+    function setStep(n) {
+      ['step1','step2','step3'].forEach((id, i) => {
+        document.getElementById(id).classList.toggle('hidden', i + 1 !== n);
+      });
+      for (let i = 1; i <= 3; i++) {
+        const dot = document.getElementById(`dot${i}`);
+        const label = document.getElementById(`label${i}`);
+        if (i < n) { dot.className = 'step-dot done'; dot.textContent = '✓'; }
+        else if (i === n) { dot.className = 'step-dot active'; dot.textContent = i; }
+        else { dot.className = 'step-dot inactive'; dot.textContent = i; }
+        if (label) label.className = `text-sm hidden sm:block ${i === n ? 'text-white/70 font-medium' : i < n ? 'text-green-400' : 'text-white/30'}`;
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function goToStep1() { setStep(1); }
+
+    function goToStep2() {
+      const name = document.getElementById('hotelName').value.trim();
+      if (!name) { alert('Por favor, introduce el nombre del hotel.'); return; }
+      hotelProfile = {
+        name, location: document.getElementById('hotelLocation').value.trim(),
+        stars: document.getElementById('hotelStars').value,
+        type: document.getElementById('hotelType').value,
+        director: document.getElementById('directorName').value.trim(),
+        role: document.getElementById('directorRole').value,
+        competitors: document.getElementById('competitors').value.split(',').map(c => c.trim()).filter(Boolean),
+        focus: getSelectedFocus(),
+      };
+      document.getElementById('hotelNameStep2').textContent = name;
+      document.getElementById('googleSearchQuery').value = name + (hotelProfile.location ? ' ' + hotelProfile.location : '');
+      setStep(2);
+    }
+
+    // ── Review count ─────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      const ta = document.getElementById('reviewsInput');
+      if (ta) ta.addEventListener('input', updateReviewCount);
+    });
 
     function updateReviewCount() {
-      const reviews = parseReviews(textarea.value);
+      const reviews = parseReviews(document.getElementById('reviewsInput').value);
       document.getElementById('reviewCount').textContent = `${reviews.length} review${reviews.length !== 1 ? 's' : ''} detectada${reviews.length !== 1 ? 's' : ''}`;
     }
 
@@ -195,184 +429,184 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
     }
 
     function loadDemo() {
-      document.getElementById('hotelName').value = 'Hotel Gran Vía Madrid';
-      textarea.value = DEMO_REVIEWS.join('\n\n');
+      document.getElementById('reviewsInput').value = DEMO_REVIEWS.join('\n\n');
       updateReviewCount();
     }
 
-    function scrollToTop() {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    // ── Google Places ────────────────────────────────
+    async function searchGooglePlaces() {
+      const apiKey = document.getElementById('googleApiKey').value.trim();
+      const query = document.getElementById('googleSearchQuery').value.trim();
+      if (!apiKey) { alert('Introduce tu Google Places API Key primero.'); return; }
+      if (!query) { alert('Introduce el nombre del hotel a buscar.'); return; }
 
-    function getScoreColor(score) {
-      if (score >= 75) return '#22c55e';
-      if (score >= 50) return '#f59e0b';
-      return '#ef4444';
-    }
-
-    function getScoreLabel(score) {
-      if (score >= 85) return { text: 'Excelente', color: 'text-green-400' };
-      if (score >= 70) return { text: 'Bueno', color: 'text-green-300' };
-      if (score >= 55) return { text: 'Mejorable', color: 'text-yellow-400' };
-      return { text: 'Crítico', color: 'text-red-400' };
-    }
-
-    async function analyzeReviews() {
-      const hotelName = document.getElementById('hotelName').value.trim() || 'Mi Hotel';
-      const rawText = textarea.value.trim();
-      const reviews = parseReviews(rawText);
-
-      if (reviews.length === 0) {
-        alert('Por favor, pega al menos una review antes de analizar.');
-        return;
-      }
-
-      // Loading state
-      const btn = document.getElementById('analyzeBtn');
-      btn.disabled = true;
-      btn.classList.add('opacity-70', 'cursor-not-allowed');
-      document.getElementById('btnText').textContent = 'Analizando con Claude...';
-      document.getElementById('btnSpinner').classList.remove('hidden');
-      document.getElementById('results').classList.add('hidden');
+      document.getElementById('googleSearchBtnText').textContent = 'Buscando...';
+      document.getElementById('googleSpinner').classList.remove('hidden');
+      document.getElementById('googleResults').classList.add('hidden');
 
       try {
         const res = await fetch(FUNCTION_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ hotel_name: hotelName, reviews }),
+          body: JSON.stringify({ action: 'search_places', query, api_key: apiKey }),
         });
-
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.error || 'Error en el servidor');
-        }
-
         const data = await res.json();
-        renderResults(data, hotelName);
 
+        if (data.error) throw new Error(data.error);
+
+        const resultsEl = document.getElementById('googleResults');
+        resultsEl.innerHTML = '';
+        if (!data.places || data.places.length === 0) {
+          resultsEl.innerHTML = '<p class="text-white/50 text-sm">No se encontraron resultados. Prueba con otro nombre.</p>';
+        } else {
+          data.places.forEach(place => {
+            const div = document.createElement('div');
+            div.className = 'source-card cursor-pointer';
+            div.innerHTML = `
+              <div class="font-medium text-sm">${place.name}</div>
+              <div class="text-white/50 text-xs mt-1">${place.address}</div>
+              <div class="text-yellow-400 text-xs mt-1">⭐ ${place.rating || 'N/A'} · ${place.total_reviews || 0} reviews</div>`;
+            div.onclick = () => selectPlace(place, div);
+            resultsEl.appendChild(div);
+          });
+        }
+        resultsEl.classList.remove('hidden');
       } catch (err) {
-        alert(`Error al analizar: ${err.message}`);
+        alert(`Error al buscar: ${err.message}`);
       } finally {
-        btn.disabled = false;
-        btn.classList.remove('opacity-70', 'cursor-not-allowed');
-        document.getElementById('btnText').textContent = 'Analizar reviews';
-        document.getElementById('btnSpinner').classList.add('hidden');
+        document.getElementById('googleSearchBtnText').textContent = 'Buscar';
+        document.getElementById('googleSpinner').classList.add('hidden');
       }
     }
 
-    function renderResults(data, hotelName) {
+    function selectPlace(place, el) {
+      document.querySelectorAll('#googleResults .source-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedPlaceId = place.place_id;
+      document.getElementById('selectedPlaceName').textContent = place.name;
+      document.getElementById('selectedPlaceDetails').textContent = `${place.address} · ⭐ ${place.rating} (${place.total_reviews} reviews)`;
+      document.getElementById('selectedPlaceInfo').classList.remove('hidden');
+    }
+
+    // ── Analyze ──────────────────────────────────────
+    async function analyzeReviews() {
+      let reviews = [];
+      let sourceLabel = '';
+
+      if (activeTab === 'google') {
+        if (!selectedPlaceId) { alert('Selecciona un hotel de los resultados de Google.'); return; }
+        const apiKey = document.getElementById('googleApiKey').value.trim();
+
+        setLoading(true);
+        try {
+          const res = await fetch(FUNCTION_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'fetch_reviews', place_id: selectedPlaceId, api_key: apiKey }),
+          });
+          const data = await res.json();
+          if (data.error) throw new Error(data.error);
+          reviews = data.reviews || [];
+          sourceLabel = 'Google Reviews';
+          if (reviews.length === 0) { alert('No se encontraron reviews para este hotel.'); setLoading(false); return; }
+        } catch (err) {
+          alert(`Error al obtener reviews: ${err.message}`);
+          setLoading(false);
+          return;
+        }
+      } else {
+        reviews = parseReviews(document.getElementById('reviewsInput').value);
+        sourceLabel = 'Input manual';
+        if (reviews.length === 0) { alert('Pega al menos una review antes de analizar.'); return; }
+        setLoading(true);
+      }
+
+      try {
+        const res = await fetch(FUNCTION_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'analyze', hotel_name: hotelProfile.name, hotel_type: hotelProfile.type, hotel_stars: hotelProfile.stars, focus_areas: hotelProfile.focus, reviews }),
+        });
+        if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Error servidor'); }
+        const data = await res.json();
+        renderResults(data, sourceLabel);
+      } catch (err) {
+        alert(`Error al analizar: ${err.message}`);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function setLoading(on) {
+      const btn = document.getElementById('analyzeBtn');
+      btn.disabled = on;
+      btn.classList.toggle('opacity-70', on);
+      btn.classList.toggle('cursor-not-allowed', on);
+      document.getElementById('btnText').textContent = on ? 'Analizando con Claude...' : 'Analizar con IA';
+      document.getElementById('btnSpinner').classList.toggle('hidden', !on);
+    }
+
+    // ── Render Results ───────────────────────────────
+    function renderResults(data, sourceLabel) {
       const { voc_score, categories, strengths, improvements, summary } = data;
 
-      // Show section
-      const resultsEl = document.getElementById('results');
-      resultsEl.classList.remove('hidden');
+      document.getElementById('resultHotelName').textContent = hotelProfile.name;
+      document.getElementById('resultHotelMeta').textContent =
+        [hotelProfile.location, hotelProfile.stars ? hotelProfile.stars + '★' : '', hotelProfile.type, sourceLabel].filter(Boolean).join(' · ');
 
-      // Hotel name
-      document.getElementById('hotelNameDisplay').textContent = hotelName;
-
-      // VOC Score gauge
       document.getElementById('vocScoreNum').textContent = voc_score;
       const label = getScoreLabel(voc_score);
-      const scoreLabel = document.getElementById('scoreLabel');
-      scoreLabel.textContent = label.text;
-      scoreLabel.className = `text-lg font-medium ${label.color}`;
-
-      // Summary
+      const scoreLabelEl = document.getElementById('scoreLabel');
+      scoreLabelEl.textContent = label.text;
+      scoreLabelEl.className = `text-lg font-semibold ${label.color}`;
       document.getElementById('summaryText').textContent = summary;
 
-      // Gauge (doughnut)
       if (gaugeInstance) gaugeInstance.destroy();
-      const gaugeCtx = document.getElementById('scoreGauge').getContext('2d');
-      gaugeInstance = new Chart(gaugeCtx, {
+      gaugeInstance = new Chart(document.getElementById('scoreGauge').getContext('2d'), {
         type: 'doughnut',
-        data: {
-          datasets: [{
-            data: [voc_score, 100 - voc_score],
-            backgroundColor: [getScoreColor(voc_score), 'rgba(255,255,255,0.08)'],
-            borderWidth: 0,
-            circumference: 270,
-            rotation: 225,
-          }]
-        },
-        options: {
-          cutout: '78%',
-          plugins: { legend: { display: false }, tooltip: { enabled: false } },
-          animation: { animateRotate: true, duration: 900 },
-        }
+        data: { datasets: [{ data: [voc_score, 100 - voc_score], backgroundColor: [getScoreColor(voc_score), 'rgba(255,255,255,0.07)'], borderWidth: 0, circumference: 270, rotation: 225 }] },
+        options: { cutout: '78%', plugins: { legend: { display: false }, tooltip: { enabled: false } }, animation: { duration: 900 } }
       });
 
-      // Radar chart
-      const categoryKeys = Object.keys(CATEGORY_LABELS);
-      const categoryValues = categoryKeys.map(k => categories[k] ?? 50);
-      const categoryLabels = categoryKeys.map(k => CATEGORY_LABELS[k]);
-
+      const keys = Object.keys(CATEGORY_LABELS);
       if (radarChartInstance) radarChartInstance.destroy();
-      const radarCtx = document.getElementById('radarChart').getContext('2d');
-      radarChartInstance = new Chart(radarCtx, {
+      radarChartInstance = new Chart(document.getElementById('radarChart').getContext('2d'), {
         type: 'radar',
         data: {
-          labels: categoryLabels,
-          datasets: [{
-            label: hotelName,
-            data: categoryValues,
-            backgroundColor: 'rgba(59, 130, 246, 0.2)',
-            borderColor: '#3b82f6',
-            borderWidth: 2,
-            pointBackgroundColor: '#3b82f6',
-            pointRadius: 4,
-          }]
+          labels: keys.map(k => CATEGORY_LABELS[k]),
+          datasets: [{ label: hotelProfile.name, data: keys.map(k => categories[k] ?? 50), backgroundColor: 'rgba(59,130,246,0.2)', borderColor: '#3b82f6', borderWidth: 2, pointBackgroundColor: '#3b82f6', pointRadius: 4 }]
         },
-        options: {
-          scales: {
-            r: {
-              min: 0, max: 100,
-              ticks: { display: false, stepSize: 25 },
-              grid: { color: 'rgba(255,255,255,0.1)' },
-              angleLines: { color: 'rgba(255,255,255,0.1)' },
-              pointLabels: { color: 'rgba(255,255,255,0.7)', font: { size: 11 } },
-            }
-          },
-          plugins: { legend: { display: false } },
-          animation: { duration: 800 },
-        }
+        options: { scales: { r: { min: 0, max: 100, ticks: { display: false }, grid: { color: 'rgba(255,255,255,0.1)' }, angleLines: { color: 'rgba(255,255,255,0.1)' }, pointLabels: { color: 'rgba(255,255,255,0.7)', font: { size: 11 } } } }, plugins: { legend: { display: false } }, animation: { duration: 800 } }
       });
 
-      // Category bars
       const barsEl = document.getElementById('categoryBars');
-      barsEl.innerHTML = '';
-      categoryKeys.forEach(key => {
-        const score = categories[key] ?? 50;
-        const color = getScoreColor(score);
-        barsEl.innerHTML += `
-          <div>
-            <div class="flex justify-between text-xs mb-1">
-              <span class="text-white/70">${CATEGORY_LABELS[key]}</span>
-              <span class="font-semibold" style="color:${color}">${score}</span>
-            </div>
-            <div class="h-1.5 bg-white/10 rounded-full overflow-hidden">
-              <div class="h-full rounded-full transition-all duration-700" style="width:${score}%; background:${color}"></div>
-            </div>
-          </div>`;
-      });
+      barsEl.innerHTML = keys.map(k => {
+        const s = categories[k] ?? 50;
+        const c = getScoreColor(s);
+        return `<div><div class="flex justify-between text-xs mb-1"><span class="text-white/70">${CATEGORY_LABELS[k]}</span><span class="font-semibold" style="color:${c}">${s}</span></div><div class="h-1.5 bg-white/10 rounded-full overflow-hidden"><div class="h-full rounded-full" style="width:${s}%;background:${c}"></div></div></div>`;
+      }).join('');
 
-      // Strengths
-      const strengthsEl = document.getElementById('strengthsList');
-      strengthsEl.innerHTML = strengths.map(s => `
-        <li class="flex items-start gap-3 text-sm">
-          <span class="mt-0.5 text-green-400 flex-shrink-0">✦</span>
-          <span class="text-white/80">${s}</span>
-        </li>`).join('');
+      document.getElementById('strengthsList').innerHTML = strengths.map(s =>
+        `<li class="flex items-start gap-3 text-sm"><span class="mt-0.5 text-green-400 flex-shrink-0">✦</span><span class="text-white/80">${s}</span></li>`).join('');
 
-      // Improvements
-      const improvementsEl = document.getElementById('improvementsList');
-      improvementsEl.innerHTML = improvements.map(i => `
-        <li class="flex items-start gap-3 text-sm">
-          <span class="mt-0.5 text-orange-400 flex-shrink-0">↑</span>
-          <span class="text-white/80">${i}</span>
-        </li>`).join('');
+      document.getElementById('improvementsList').innerHTML = improvements.map(i =>
+        `<li class="flex items-start gap-3 text-sm"><span class="mt-0.5 text-orange-400 flex-shrink-0">↑</span><span class="text-white/80">${i}</span></li>`).join('');
 
-      // Scroll to results
-      setTimeout(() => resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+      if (hotelProfile.competitors && hotelProfile.competitors.length > 0) {
+        document.getElementById('competitorSection').classList.remove('hidden');
+        document.getElementById('competitorList').innerHTML = hotelProfile.competitors.map(c =>
+          `<span class="text-xs bg-white/10 px-3 py-1 rounded-full text-white/60">${c}</span>`).join('');
+      }
+
+      setStep(3);
+    }
+
+    function getScoreColor(s) { return s >= 75 ? '#22c55e' : s >= 50 ? '#f59e0b' : '#ef4444'; }
+    function getScoreLabel(s) {
+      if (s >= 85) return { text: 'Excelente ✨', color: 'text-green-400' };
+      if (s >= 70) return { text: 'Bueno 👍', color: 'text-green-300' };
+      if (s >= 55) return { text: 'Mejorable ⚠️', color: 'text-yellow-400' };
+      return { text: 'Crítico 🔴', color: 'text-red-400' };
     }
   </script>
 
