@@ -260,13 +260,29 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
     <!-- ═══════════════════════════════════════════ -->
     <div id="step3" class="hidden fade-in">
 
-      <!-- Back button -->
-      <div class="flex items-center justify-between mb-8">
-        <div>
-          <h2 class="text-2xl font-extrabold" id="resultHotelName"></h2>
-          <p class="text-white/50 text-sm" id="resultHotelMeta"></p>
+      <!-- Hotel Hero -->
+      <div id="hotelHero" class="relative rounded-2xl overflow-hidden mb-8 h-40 hidden">
+        <div id="hotelHeroBg" class="absolute inset-0 bg-cover bg-center"></div>
+        <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent"></div>
+        <div class="relative flex items-center gap-5 h-full px-6">
+          <img id="hotelLogo" src="" alt="Logo" class="w-16 h-16 rounded-xl object-contain bg-white p-1.5 shadow-lg hidden" />
+          <div>
+            <h2 class="text-2xl font-extrabold" id="resultHotelName"></h2>
+            <p class="text-white/70 text-sm" id="resultHotelMeta"></p>
+          </div>
+          <button onclick="goToStep2()" class="ml-auto text-xs text-white/50 hover:text-white transition bg-white/10 px-3 py-1.5 rounded-lg">← Nueva análisis</button>
         </div>
-        <button onclick="goToStep2()" class="text-sm text-white/40 hover:text-white transition flex items-center gap-1">← Nueva análisis</button>
+      </div>
+      <!-- Fallback header (no photo) -->
+      <div id="hotelHeader" class="flex items-center justify-between mb-8">
+        <div class="flex items-center gap-4">
+          <img id="hotelLogoSmall" src="" alt="Logo" class="w-12 h-12 rounded-xl object-contain bg-white p-1 shadow hidden" />
+          <div>
+            <h2 class="text-2xl font-extrabold" id="resultHotelNameFallback"></h2>
+            <p class="text-white/50 text-sm" id="resultHotelMetaFallback"></p>
+          </div>
+        </div>
+        <button onclick="goToStep2()" class="text-sm text-white/40 hover:text-white transition">← Nueva análisis</button>
       </div>
 
       <!-- VOC Score -->
@@ -379,6 +395,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
     let radarChartInstance = null;
     let gaugeInstance = null;
     let hotelProfile = {};
+    let hotelBranding = { photo_url: null, logo_url: null };
 
     // ── Focus tags ──────────────────────────────────
     function toggleFocus(btn) {
@@ -528,6 +545,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
           if (data.error) throw new Error(data.error);
           reviews = data.reviews || [];
           sourceLabel = 'Google Reviews';
+          hotelBranding = { photo_url: data.photo_url || null, logo_url: data.logo_url || null };
           if (reviews.length === 0) { alert('No se encontraron reviews para este hotel.'); setLoading(false); return; }
         } catch (err) {
           alert(`Error al obtener reviews: ${err.message}`);
@@ -556,6 +574,8 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
               role: hotelProfile.role,
               competitors: hotelProfile.competitors,
               focus_areas: hotelProfile.focus,
+              photo_url: hotelBranding.photo_url,
+              logo_url: hotelBranding.logo_url,
             },
             reviews,
             source: sourceLabel,
@@ -584,9 +604,32 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
     function renderResults(data, sourceLabel) {
       const { voc_score, categories, strengths, improvements, summary, alerts = [], insights = [], slug } = data;
 
-      document.getElementById('resultHotelName').textContent = hotelProfile.name;
-      document.getElementById('resultHotelMeta').textContent =
-        [hotelProfile.location, hotelProfile.stars ? hotelProfile.stars + '★' : '', hotelProfile.type, sourceLabel].filter(Boolean).join(' · ');
+      const metaText = [hotelProfile.location, hotelProfile.stars ? hotelProfile.stars + '★' : '', hotelProfile.type, sourceLabel].filter(Boolean).join(' · ');
+      const photo = hotelBranding.photo_url || data.photo_url;
+      const logo = hotelBranding.logo_url || data.logo_url;
+
+      if (photo) {
+        document.getElementById('hotelHero').classList.remove('hidden');
+        document.getElementById('hotelHeader').classList.add('hidden');
+        document.getElementById('hotelHeroBg').style.backgroundImage = `url('${photo}')`;
+        document.getElementById('resultHotelName').textContent = hotelProfile.name;
+        document.getElementById('resultHotelMeta').textContent = metaText;
+        if (logo) {
+          const logoEl = document.getElementById('hotelLogo');
+          logoEl.src = logo; logoEl.classList.remove('hidden');
+          logoEl.onerror = () => logoEl.classList.add('hidden');
+        }
+      } else {
+        document.getElementById('hotelHero').classList.add('hidden');
+        document.getElementById('hotelHeader').classList.remove('hidden');
+        document.getElementById('resultHotelNameFallback').textContent = hotelProfile.name;
+        document.getElementById('resultHotelMetaFallback').textContent = metaText;
+        if (logo) {
+          const logoEl = document.getElementById('hotelLogoSmall');
+          logoEl.src = logo; logoEl.classList.remove('hidden');
+          logoEl.onerror = () => logoEl.classList.add('hidden');
+        }
+      }
 
       document.getElementById('vocScoreNum').textContent = voc_score;
       const label = getScoreLabel(voc_score);
