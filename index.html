@@ -460,6 +460,8 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
     let lastAnalysisData = null;
     let benchmarkLoaded = false;
     let detailData = { alerts: [], insights: [] };
+    let currentAnalysisId = null;
+    let lastBenchmarkResults = null;
 
     // ── Focus tags ──────────────────────────────────
     function toggleFocus(btn) {
@@ -668,6 +670,8 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
     function renderResults(data, sourceLabel) {
       lastAnalysisData = data;
       benchmarkLoaded = false;
+      lastBenchmarkResults = null;
+      if (data.analysis_id) currentAnalysisId = data.analysis_id;
       const { voc_score, categories, strengths, improvements, summary, alerts = [], insights = [], slug, nps_estimated, compliments = [] } = data;
 
       const metaText = [hotelProfile.location, hotelProfile.stars ? hotelProfile.stars + '★' : '', hotelProfile.type, sourceLabel].filter(Boolean).join(' · ');
@@ -925,6 +929,14 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
     // ── Benchmark Tab ─────────────────────────────────
     function initBenchmarkTab() {
       const hasCompetitors = hotelProfile.competitors && hotelProfile.competitors.length > 0;
+
+      // If we have stored benchmark results from a loaded analysis, render them now
+      if (lastBenchmarkResults && !benchmarkLoaded) {
+        renderBenchmarkResults(lastBenchmarkResults);
+        lastBenchmarkResults = null;
+        return;
+      }
+
       document.getElementById('benchmark-no-competitors').classList.toggle('hidden', hasCompetitors);
       document.getElementById('benchmark-ready').classList.toggle('hidden', !hasCompetitors || benchmarkLoaded);
       document.getElementById('benchmark-results').classList.toggle('hidden', !benchmarkLoaded);
@@ -957,6 +969,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
             hotel_scores: { voc_score: lastAnalysisData.voc_score, categories: lastAnalysisData.categories },
             competitors: hotelProfile.competitors,
             location: hotelProfile.location,
+            analysis_id: currentAnalysisId,
           }),
         });
         const data = await res.json();
@@ -1086,7 +1099,13 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         logo_url: data.hotel.logo_url || null,
       };
       const a = data.analysis;
-      if (a) renderResults({ ...a, alerts: a.alerts || [], insights: a.insights || [], slug }, a.source || 'Guardado');
+      if (a) {
+        if (a.id) currentAnalysisId = a.id;
+        renderResults({ ...a, alerts: a.alerts || [], insights: a.insights || [], slug }, a.source || 'Guardado');
+        if (a.benchmark) {
+          lastBenchmarkResults = a.benchmark;
+        }
+      }
     }
 
     // ── Init ─────────────────────────────────────────
