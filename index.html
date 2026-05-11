@@ -33,133 +33,51 @@
     #detailPanelInner { transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
     #detailPanel.hidden #detailPanelInner { transform: translateX(100%); }
 
-    /* ── Org Chart ──────────────────────────────────── */
-    .org-chart-wrap { padding: 16px 8px; }
-    .org-node-group { display: flex; flex-direction: column; align-items: center; }
-    /* Connector from parent to children row */
-    .org-children-wrap { display: flex; flex-direction: column; align-items: center; }
-    .org-vert-line { width: 2px; height: 20px; background: rgba(255,255,255,0.15); }
-    .org-horiz-row { display: flex; align-items: flex-start; gap: 0; }
-    /* Each child gets a "T" connector */
-    .org-child-col { display: flex; flex-direction: column; align-items: center; }
-    .org-child-col-inner { display: flex; align-items: flex-start; position: relative; }
-    /* Horizontal bar spanning all children */
-    .org-h-bar { height: 2px; background: rgba(255,255,255,0.15); }
-    .org-node-card {
-      background: rgba(255,255,255,0.07);
+    /* Org chart */
+    .org-chart { display: flex; flex-direction: column; align-items: center; }
+    .org-connector-v { width: 2px; height: 32px; background: rgba(255,255,255,0.15); }
+    .org-node {
+      width: 150px; border-radius: 12px; padding: 12px;
       border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 12px;
-      padding: 10px 14px;
-      min-width: 140px;
-      max-width: 180px;
-      cursor: default;
-      position: relative;
-      transition: background 0.15s;
-      user-select: none;
+      background: rgba(255,255,255,0.06);
+      transition: background 0.2s; position: relative;
     }
-    .org-node-card:hover { background: rgba(255,255,255,0.10); }
-    .org-node-name {
-      font-size: 13px;
-      font-weight: 600;
-      color: rgba(255,255,255,0.92);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 130px;
-      outline: none;
+    .org-node:hover { background: rgba(255,255,255,0.1); }
+    .org-node .node-name { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); margin-bottom: 2px; }
+    .org-node .node-role { font-size: 10px; color: rgba(255,255,255,0.45); line-height: 1.3; }
+    .org-node .node-badge {
+      position: absolute; top: -8px; right: -8px;
+      min-width: 20px; height: 20px; border-radius: 10px;
+      font-size: 10px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; padding: 0 5px;
+      background: #3b82f6; color: white; border: 2px solid #0f2340;
     }
-    .org-node-name[contenteditable="true"] {
-      border-bottom: 1px dashed rgba(255,255,255,0.4);
-      cursor: text;
-      max-width: 130px;
+    .org-node .node-badge.zero { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.4); }
+    .org-node input.node-name-input {
+      font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px; padding: 2px 6px; width: 100%; outline: none;
     }
-    .org-node-role {
-      font-size: 11px;
-      color: rgba(255,255,255,0.40);
-      margin-top: 1px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 130px;
-      outline: none;
-    }
-    .org-node-role[contenteditable="true"] {
-      border-bottom: 1px dashed rgba(255,255,255,0.2);
-      cursor: text;
-    }
-    /* Semáforo dot */
-    .org-semaforo {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      border: 1.5px solid rgba(0,0,0,0.3);
-      flex-shrink: 0;
-    }
-    /* Count badge */
-    .org-count-badge {
-      position: absolute;
-      top: 4px;
-      right: 22px;
-      min-width: 16px;
-      height: 16px;
-      border-radius: 9999px;
-      background: rgba(255,255,255,0.15);
-      color: rgba(255,255,255,0.85);
-      font-size: 10px;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 4px;
-    }
-    /* Edit action buttons */
-    .org-node-actions {
-      display: flex;
-      gap: 4px;
-      margin-top: 8px;
-    }
-    .org-action-btn {
-      flex: 1;
-      font-size: 10px;
-      padding: 3px 4px;
-      border-radius: 6px;
-      border: 1px solid rgba(255,255,255,0.15);
-      background: rgba(255,255,255,0.05);
-      color: rgba(255,255,255,0.55);
-      cursor: pointer;
-      text-align: center;
-      white-space: nowrap;
-      transition: background 0.15s, color 0.15s;
-    }
-    .org-action-btn:hover { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.9); }
-    .org-action-btn.delete { border-color: rgba(239,68,68,0.3); }
-    .org-action-btn.delete:hover { background: rgba(239,68,68,0.2); color: #fca5a5; }
-    /* Avatar in alert/insight card */
+    /* Assignment */
     .assign-avatar {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      font-size: 10px;
-      font-weight: 700;
-      color: white;
-      flex-shrink: 0;
+      width: 26px; height: 26px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; color: white; cursor: pointer; flex-shrink: 0;
+      border: 2px solid rgba(255,255,255,0.2); transition: transform 0.15s;
     }
-    .assign-avatar .semaforo-dot {
-      position: absolute;
-      bottom: -1px;
-      right: -1px;
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      border: 1.5px solid rgba(15,35,64,0.9);
+    .assign-avatar:hover { transform: scale(1.1); }
+    .assign-dropdown {
+      position: absolute; right: 0; top: 110%;
+      background: #1a3558; border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px; overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5); z-index: 100; min-width: 200px;
     }
+    .assign-dropdown-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; cursor: pointer; transition: background 0.15s; font-size: 12px;
+    }
+    .assign-dropdown-item:hover { background: rgba(255,255,255,0.08); }
+    .assign-dropdown-item.selected { background: rgba(59,130,246,0.15); }
   </style>
 </head>
 <body class="gradient-bg min-h-screen text-white">
@@ -436,17 +354,17 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       </div>
 
       <!-- TABS -->
-      <div class="flex gap-1 mb-6 bg-white/5 rounded-xl p-1">
+      <div class="flex gap-1 mb-6 bg-white/5 rounded-xl p-1 overflow-x-auto">
         <button onclick="switchDashTab('dashboard')" id="dtab-dashboard"
-          class="dtab flex-1 rounded-lg py-2.5 text-sm font-medium transition">📊 Dashboard</button>
+          class="dtab flex-1 rounded-lg py-2.5 text-sm font-medium transition whitespace-nowrap">📊 Dashboard</button>
         <button onclick="switchDashTab('alertas')" id="dtab-alertas"
-          class="dtab flex-1 rounded-lg py-2.5 text-sm font-medium transition">🚨 Alertas <span id="alertBadge" class="hidden ml-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5"></span></button>
+          class="dtab flex-1 rounded-lg py-2.5 text-sm font-medium transition whitespace-nowrap">🚨 Alertas <span id="alertBadge" class="hidden ml-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5"></span></button>
         <button onclick="switchDashTab('insights')" id="dtab-insights"
-          class="dtab flex-1 rounded-lg py-2.5 text-sm font-medium transition">💡 Insights</button>
+          class="dtab flex-1 rounded-lg py-2.5 text-sm font-medium transition whitespace-nowrap">💡 Insights</button>
         <button onclick="switchDashTab('benchmark')" id="dtab-benchmark"
-          class="dtab flex-1 rounded-lg py-2.5 text-sm font-medium transition">🏆 Benchmark</button>
+          class="dtab flex-1 rounded-lg py-2.5 text-sm font-medium transition whitespace-nowrap">🏆 Benchmark</button>
         <button onclick="switchDashTab('equipo')" id="dtab-equipo"
-          class="dtab flex-1 rounded-lg py-2.5 text-sm font-medium transition">👥 Equipo</button>
+          class="dtab flex-1 rounded-lg py-2.5 text-sm font-medium transition whitespace-nowrap">👥 Equipo</button>
       </div>
 
       <!-- TAB: DASHBOARD -->
@@ -587,34 +505,18 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
 
       <!-- TAB: EQUIPO -->
       <div id="tab-equipo" class="hidden">
-        <!-- Toolbar -->
-        <div class="flex items-center justify-between mb-6">
-          <div>
-            <h3 class="font-semibold text-white/90">Organigrama del equipo</h3>
-            <p class="text-white/40 text-xs mt-0.5">Asigna alertas e insights a miembros del equipo. El semáforo refleja su carga de trabajo en tiempo real.</p>
-          </div>
-          <div class="flex items-center gap-3">
-            <div class="flex items-center gap-2 text-xs text-white/50">
-              <span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span>P0
-              <span class="w-2.5 h-2.5 rounded-full bg-orange-400 inline-block ml-1"></span>P1/P2
-              <span class="w-2.5 h-2.5 rounded-full bg-green-500 inline-block ml-1"></span>P3/P4
-              <span class="w-2.5 h-2.5 rounded-full bg-white/30 inline-block ml-1"></span>Sin asignar
+        <div class="glass rounded-2xl p-6">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h3 class="font-semibold text-white/90">Organigrama del equipo</h3>
+              <p class="text-white/40 text-xs mt-0.5">Asigna alertas e insights a cada responsable</p>
             </div>
-            <button onclick="toggleOrgEditMode()"
-              id="orgEditBtn"
-              class="text-xs px-3 py-1.5 rounded-lg border transition font-medium border-white/20 text-white/50 hover:text-white hover:border-white/40">
-              ✏️ Editar
+            <button id="editTeamBtn" onclick="toggleTeamEdit()"
+              class="text-xs bg-white/10 hover:bg-white/15 transition px-3 py-2 rounded-lg flex items-center gap-1.5">
+              ✏️ Editar equipo
             </button>
           </div>
-        </div>
-        <!-- Org chart container -->
-        <div class="glass rounded-2xl p-6 overflow-x-auto">
-          <div id="orgChartRoot" class="org-chart-wrap flex justify-center min-w-max"></div>
-        </div>
-        <!-- Unassigned items legend -->
-        <div id="unassignedSection" class="mt-6 glass rounded-2xl p-5 hidden">
-          <h4 class="font-semibold text-sm text-white/70 mb-3">Sin asignar</h4>
-          <div id="unassignedList" class="flex flex-wrap gap-2"></div>
+          <div id="orgChartContainer"></div>
         </div>
       </div>
 
@@ -638,6 +540,20 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       "Muy decepcionada con la gestión de nuestra reserva. Hubo un error y tardaron 2 horas en resolverlo. Las instalaciones están algo anticuadas para el precio. El personal muy educado pero poco eficiente."
     ];
 
+    const DEFAULT_TEAM = [
+      { id: 'dir',  name: 'Director/a General',   role: 'Director General',       dept: 'direccion', parent: null },
+      { id: 'rec',  name: 'Jefa de Recepción',     role: 'Jefa de Recepción',      dept: 'recepcion', parent: 'dir' },
+      { id: 'pis',  name: 'Jefa de Pisos',         role: 'Jefa de Pisos',          dept: 'pisos',     parent: 'dir' },
+      { id: 'fb',   name: 'Jefe de F&B',           role: 'Jefe de F&B',            dept: 'fb',        parent: 'dir' },
+      { id: 'mant', name: 'Jefe de Mantenimiento', role: 'Jefe de Mantenimiento',  dept: 'mant',      parent: 'dir' },
+      { id: 'rrhh', name: 'Responsable RRHH',      role: 'Responsable RRHH',       dept: 'rrhh',      parent: 'dir' },
+    ];
+
+    const DEPT_COLORS = {
+      direccion: '#3b82f6', recepcion: '#8b5cf6', pisos: '#14b8a6',
+      fb: '#f97316', mant: '#eab308', rrhh: '#ec4899',
+    };
+
     let selectedPlaceId = null;
     let activeTab = 'google';
     let radarChartInstance = null;
@@ -653,335 +569,12 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
     let currentSlug = null;
     let lastBenchmarkResults = null;
 
-    // ── Equipo / Org Chart State ─────────────────────
-    // itemAssignments: { 'alert_0': 'member_id', 'insight_2': 'member_id', ... }
+    // Team state
+    let teamMembers = [];
     let itemAssignments = {};
-    let orgEditMode = false;
-
-    // Default org chart tree — replaced/extended via UI
-    let orgTree = {
-      id: 'member_director',
-      name: 'Director/a General',
-      role: 'Director/a',
-      dept: 'dir',
-      deptColor: '#3b82f6',
-      children: [
-        {
-          id: 'member_rooms',
-          name: 'Jefe/a de Habitaciones',
-          role: 'Rooms Division',
-          dept: 'rooms',
-          deptColor: '#8b5cf6',
-          children: [
-            { id: 'member_recepcion', name: 'Recepción', role: '', dept: 'rooms', deptColor: '#8b5cf6', children: [] },
-            { id: 'member_limpieza', name: 'Housekeeping', role: '', dept: 'rooms', deptColor: '#8b5cf6', children: [] },
-          ],
-        },
-        {
-          id: 'member_fb',
-          name: 'Jefe/a de F&B',
-          role: 'Food & Beverage',
-          dept: 'fb',
-          deptColor: '#f97316',
-          children: [
-            { id: 'member_restaurante', name: 'Restaurante', role: '', dept: 'fb', deptColor: '#f97316', children: [] },
-          ],
-        },
-        {
-          id: 'member_ops',
-          name: 'Jefe/a de Operaciones',
-          role: 'Operaciones',
-          dept: 'ops',
-          deptColor: '#22c55e',
-          children: [],
-        },
-      ],
-    };
-
-    // ── Org Chart: semáforo computation ─────────────
-    function computeSemaforo(memberId) {
-      // Find all items assigned to this member
-      const assigned = Object.entries(itemAssignments)
-        .filter(([, id]) => id === memberId)
-        .map(([key]) => key);
-
-      if (assigned.length === 0) return { color: '#6b7280', count: 0 }; // grey
-
-      let hasP0 = false, hasP1orP2 = false;
-      assigned.forEach(key => {
-        const [type, idxStr] = key.split('_');
-        const idx = parseInt(idxStr, 10);
-        if (type === 'alert') {
-          const a = detailData.alerts[idx];
-          if (a) {
-            if (a.priority === 'P0') hasP0 = true;
-            else if (a.priority === 'P1' || a.priority === 'P2') hasP1orP2 = true;
-          }
-        }
-        // insights and P3/P4 alerts count as green
-      });
-
-      let color = '#22c55e'; // green by default
-      if (hasP0) color = '#ef4444';
-      else if (hasP1orP2) color = '#fb923c';
-
-      return { color, count: assigned.length };
-    }
-
-    // ── Org Chart: flatten tree to get all members ───
-    function flattenTree(node, result = []) {
-      result.push(node);
-      (node.children || []).forEach(c => flattenTree(c, result));
-      return result;
-    }
-
-    // ── Org Chart: find node by id ───────────────────
-    function findNode(node, id) {
-      if (node.id === id) return node;
-      for (const c of (node.children || [])) {
-        const found = findNode(c, id);
-        if (found) return found;
-      }
-      return null;
-    }
-
-    // ── Org Chart: find parent of node ──────────────
-    function findParent(tree, id, parent = null) {
-      if (tree.id === id) return parent;
-      for (const c of (tree.children || [])) {
-        const found = findParent(c, id, tree);
-        if (found !== undefined) return found;
-      }
-      return undefined;
-    }
-
-    // ── Org Chart: remove node from tree ────────────
-    function removeNodeFromTree(tree, id) {
-      tree.children = (tree.children || []).filter(c => c.id !== id);
-      tree.children.forEach(c => removeNodeFromTree(c, id));
-    }
-
-    // ── Org Chart: add subordinate ───────────────────
-    function addSubordinate(parentId) {
-      const parent = findNode(orgTree, parentId);
-      if (!parent) return;
-      const newId = `member_${Date.now()}`;
-      parent.children = parent.children || [];
-      parent.children.push({
-        id: newId,
-        name: 'Nuevo miembro',
-        role: '',
-        dept: parent.dept,
-        deptColor: parent.deptColor,
-        children: [],
-      });
-      renderEquipoTab();
-    }
-
-    // ── Org Chart: delete node ───────────────────────
-    function deleteOrgNode(id) {
-      if (id === orgTree.id) { alert('No se puede eliminar el nodo raíz.'); return; }
-      // Re-assign items assigned to deleted node or its descendants
-      const subtree = findNode(orgTree, id);
-      if (!subtree) return;
-      const descendants = flattenTree(subtree).map(n => n.id);
-      Object.keys(itemAssignments).forEach(key => {
-        if (descendants.includes(itemAssignments[key])) delete itemAssignments[key];
-      });
-      removeNodeFromTree(orgTree, id);
-      renderEquipoTab();
-      rebuildAlertCards();
-    }
-
-    // ── Org Chart: rename node ───────────────────────
-    function renameOrgNode(id, field, value) {
-      const node = findNode(orgTree, id);
-      if (!node) return;
-      node[field] = value.trim();
-    }
-
-    // ── Org Chart: toggle edit mode ──────────────────
-    function toggleOrgEditMode() {
-      orgEditMode = !orgEditMode;
-      const btn = document.getElementById('orgEditBtn');
-      if (orgEditMode) {
-        btn.className = 'text-xs px-3 py-1.5 rounded-lg border transition font-medium border-blue-400/60 text-blue-300 bg-blue-500/10';
-        btn.textContent = '✓ Listo';
-      } else {
-        btn.className = 'text-xs px-3 py-1.5 rounded-lg border transition font-medium border-white/20 text-white/50 hover:text-white hover:border-white/40';
-        btn.textContent = '✏️ Editar';
-      }
-      renderEquipoTab();
-    }
-
-    // ── Org Chart: build assignment dropdown ─────────
-    function buildAssignDropdown(itemKey) {
-      const members = flattenTree(orgTree);
-      const current = itemAssignments[itemKey];
-      const opts = members.map(m =>
-        `<option value="${m.id}" ${m.id === current ? 'selected' : ''}>${m.name}</option>`
-      ).join('');
-      return `<select onchange="assignItem('${itemKey}', this.value)"
-        class="text-xs bg-white/10 border border-white/15 rounded-lg px-2 py-1 text-white/70 focus:border-blue-400 cursor-pointer"
-        onclick="event.stopPropagation()">
-        <option value="">— Asignar —</option>
-        ${opts}
-      </select>`;
-    }
-
-    // ── Assign item to member ────────────────────────
-    function assignItem(itemKey, memberId) {
-      if (memberId) {
-        itemAssignments[itemKey] = memberId;
-      } else {
-        delete itemAssignments[itemKey];
-      }
-      // Re-render semáforos without switching tabs
-      renderEquipoTab();
-      rebuildAlertCards();
-    }
-
-    // ── Rebuild alert/insight card HTML with assignment UI ──
-    function rebuildAlertCards() {
-      const alerts = detailData.alerts;
-      const insights = detailData.insights;
-      if (!alerts.length && !insights.length) return;
-
-      const alertBorderColor = { P0: '#dc2626', P1: '#ef4444', P2: '#f97316', P3: '#eab308', P4: '#22c55e' };
-      const alertTime = { P0: 'AHORA', P1: '< 2h', P2: '< 24h', P3: '72h', P4: '' };
-      const alertIconMap = { P0: '🚨', P1: '🔴', P2: '🟠', P3: '🟡', P4: '🟢' };
-
-      function assignAvatarHtml(itemKey) {
-        const memberId = itemAssignments[itemKey];
-        if (!memberId) return buildAssignDropdown(itemKey);
-        const node = findNode(orgTree, memberId);
-        if (!node) return buildAssignDropdown(itemKey);
-        const initials = node.name.split(/\s+/).slice(0,2).map(w => w[0]).join('').toUpperCase();
-        const sem = computeSemaforo(memberId);
-        const avatarColor = node.deptColor || '#3b82f6';
-        return `<div class="flex items-center gap-1.5">
-          <span class="assign-avatar" style="background:${avatarColor}" title="${node.name}">
-            ${initials}
-            <span class="semaforo-dot" style="background:${sem.color}"></span>
-          </span>
-          ${buildAssignDropdown(itemKey)}
-        </div>`;
-      }
-
-      function buildAlertCardFull(a, idx) {
-        const itemKey = `alert_${idx}`;
-        return `
-          <div onclick="showAlertDetail(${idx})" class="glass rounded-xl px-4 py-3 border-l-4 flex items-center gap-3 cursor-pointer hover:bg-white/5 transition group" style="border-color:${alertBorderColor[a.priority] || '#eab308'}">
-            <span class="text-lg flex-shrink-0">${alertIconMap[a.priority] || '🟡'}</span>
-            <div class="flex-1 min-w-0">
-              <div class="font-semibold text-sm flex items-center gap-2 flex-wrap">
-                ${a.title}
-                ${a.priority === 'P0' ? '<span class="text-xs font-bold px-2 py-0.5 rounded-full bg-red-600 text-white animate-pulse">URGENTE</span>' : ''}
-              </div>
-              <div class="text-white/40 text-xs mt-0.5 line-clamp-2">${a.summary}</div>
-              ${a.guest_name ? `<div class="mt-1"><span class="text-xs bg-white/10 px-2 py-0.5 rounded-full text-white/60">👤 ${a.guest_name}</span></div>` : ''}
-            </div>
-            <div class="flex items-center gap-2 flex-shrink-0" onclick="event.stopPropagation()">
-              ${assignAvatarHtml(itemKey)}
-              ${alertTime[a.priority] ? `<span class="text-xs font-medium px-2 py-0.5 rounded-full" style="background:${alertBorderColor[a.priority]}20;color:${alertBorderColor[a.priority]}">${alertTime[a.priority]}</span>` : ''}
-              <span class="text-white/20 group-hover:text-white/50 transition text-sm pointer-events-none">→</span>
-            </div>
-          </div>`;
-      }
-
-      const p0Alerts = alerts.filter(a => a.priority === 'P0');
-      const otherAlerts = alerts.filter(a => a.priority !== 'P0');
-      const guestAlertSection = document.getElementById('guestAlertSection');
-      const guestAlertsList = document.getElementById('guestAlertsList');
-      const alertsEl = document.getElementById('alertsList');
-      if (p0Alerts.length > 0) {
-        guestAlertSection.classList.remove('hidden');
-        guestAlertsList.innerHTML = p0Alerts.map(a => buildAlertCardFull(a, alerts.indexOf(a))).join('');
-      } else {
-        guestAlertSection.classList.add('hidden');
-      }
-      if (otherAlerts.length > 0) {
-        alertsEl.innerHTML = otherAlerts.map(a => buildAlertCardFull(a, alerts.indexOf(a))).join('');
-      }
-
-      // Insights
-      const insightStyle = {
-        strength:    { icon: '✨', bg: 'bg-green-500/10',  border: 'border-green-500/30',  text: 'text-green-400' },
-        warning:     { icon: '⚠️', bg: 'bg-orange-500/10', border: 'border-orange-500/30', text: 'text-orange-400' },
-        opportunity: { icon: '🚀', bg: 'bg-blue-500/10',   border: 'border-blue-500/30',   text: 'text-blue-400' },
-      };
-      document.getElementById('insightsList').innerHTML = insights.map((ins, idx) => {
-        const st = insightStyle[ins.type] || insightStyle.opportunity;
-        const itemKey = `insight_${idx}`;
-        return `<div onclick="showInsightDetail(${idx})" class="${st.bg} border ${st.border} rounded-xl px-4 py-3 flex items-start gap-3 cursor-pointer hover:opacity-90 transition group">
-          <span class="text-xl flex-shrink-0 mt-0.5">${st.icon}</span>
-          <div class="flex-1 min-w-0">
-            <div class="font-semibold text-sm ${st.text}">${ins.title}</div>
-            <div class="text-white/50 text-xs mt-0.5 line-clamp-2">${ins.description}</div>
-          </div>
-          <div class="flex items-center gap-2 flex-shrink-0 mt-1" onclick="event.stopPropagation()">
-            ${assignAvatarHtml(itemKey)}
-          </div>
-          <span class="text-white/20 group-hover:text-white/50 transition text-sm flex-shrink-0 mt-1 pointer-events-none">→</span>
-        </div>`;
-      }).join('');
-    }
-
-    // ── Org Chart: render a single node recursively ──
-    function renderOrgNode(node) {
-      const sem = computeSemaforo(node.id);
-      const countBadge = sem.count > 0
-        ? `<span class="org-count-badge">${sem.count}</span>` : '';
-      const editable = orgEditMode ? 'contenteditable="true"' : '';
-      const actionsHtml = orgEditMode ? `
-        <div class="org-node-actions">
-          <button class="org-action-btn" onclick="event.stopPropagation();addSubordinate('${node.id}')">+ Sub</button>
-          ${node.id !== orgTree.id ? `<button class="org-action-btn delete" onclick="event.stopPropagation();deleteOrgNode('${node.id}')">🗑️</button>` : ''}
-        </div>` : '';
-
-      const cardHtml = `<div class="org-node-card" data-id="${node.id}">
-        ${countBadge}
-        <span class="org-semaforo" style="background:${sem.color}"></span>
-        <div class="org-node-name" ${editable}
-          onblur="renameOrgNode('${node.id}','name',this.innerText)"
-          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
-          >${node.name}</div>
-        <div class="org-node-role" ${editable}
-          onblur="renameOrgNode('${node.id}','role',this.innerText)"
-          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
-          >${node.role || (orgEditMode ? 'Cargo...' : '')}</div>
-        ${actionsHtml}
-      </div>`;
-
-      const children = node.children || [];
-      if (children.length === 0) {
-        return `<div class="org-node-group">${cardHtml}</div>`;
-      }
-
-      // Vertical drop + horizontal bar + child columns (recursive, arbitrary depth)
-      const rowConnector = `
-        <div class="org-vert-line"></div>
-        <div style="display:flex;align-items:flex-start;gap:0;position:relative;">
-          <div style="position:absolute;top:0;left:0;right:0;height:2px;background:rgba(255,255,255,0.15)"></div>
-          ${children.map(c => `
-            <div style="display:flex;flex-direction:column;align-items:center;padding:0 16px;position:relative;">
-              <div style="height:20px;width:2px;background:rgba(255,255,255,0.15)"></div>
-              ${renderOrgNode(c)}
-            </div>`).join('')}
-        </div>`;
-
-      return `<div class="org-node-group">
-        ${cardHtml}
-        ${rowConnector}
-      </div>`;
-    }
-
-    // ── Org Chart: render the full Equipo tab ────────
-    function renderEquipoTab() {
-      const root = document.getElementById('orgChartRoot');
-      if (!root) return;
-      root.innerHTML = renderOrgNode(orgTree);
-    }
+    let teamEditMode = false;
+    let saveAssignmentTimer = null;
+    let activeDropdownKey = null;
 
     // ── Focus tags ──────────────────────────────────
     function toggleFocus(btn) {
@@ -1173,6 +766,9 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         });
         if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Error servidor'); }
         const data = await res.json();
+        // Init team for fresh analysis
+        if (!teamMembers.length) teamMembers = JSON.parse(JSON.stringify(DEFAULT_TEAM));
+        itemAssignments = {};
         renderResults(data, sourceLabel);
       } catch (err) {
         alert(`Error al analizar: ${err.message}`);
@@ -1190,12 +786,243 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       document.getElementById('btnSpinner').classList.toggle('hidden', !on);
     }
 
+    // ── Team helpers ─────────────────────────────────
+    function getMemberInitials(member) {
+      const parts = member.name.trim().split(/\s+/);
+      if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      return member.name.substring(0, 2).toUpperCase();
+    }
+
+    function getMemberColor(member) {
+      return DEPT_COLORS[member.dept] || '#3b82f6';
+    }
+
+    function getAssignmentCounts() {
+      const counts = {};
+      teamMembers.forEach(m => { counts[m.id] = 0; });
+      Object.values(itemAssignments).forEach(m => {
+        if (m && m.id && counts[m.id] !== undefined) counts[m.id]++;
+      });
+      return counts;
+    }
+
+    // ── Assignment avatar HTML ────────────────────────
+    function assignAvatarHtml(itemKey) {
+      const assigned = itemAssignments[itemKey];
+      if (assigned) {
+        const color = DEPT_COLORS[teamMembers.find(m => m.id === assigned.id)?.dept] || '#3b82f6';
+        const initials = getMemberInitials(assigned);
+        return `<div class="assign-avatar" style="background:${color}" title="${assigned.name} — ${assigned.role}"
+          onclick="toggleAssignDropdown(event,'${itemKey}')">${initials}</div>`;
+      }
+      return `<div class="assign-avatar" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.4)"
+        onclick="toggleAssignDropdown(event,'${itemKey}')" title="Asignar responsable">+</div>`;
+    }
+
+    function toggleAssignDropdown(e, itemKey) {
+      e.stopPropagation();
+      const existing = document.querySelector('.assign-dropdown');
+      if (existing) {
+        const existingKey = existing.dataset.key;
+        existing.remove();
+        if (existingKey === itemKey) { activeDropdownKey = null; return; }
+      }
+      activeDropdownKey = itemKey;
+      const trigger = e.currentTarget;
+
+      const dropdown = document.createElement('div');
+      dropdown.className = 'assign-dropdown';
+      dropdown.dataset.key = itemKey;
+
+      const currentAssigned = itemAssignments[itemKey];
+      if (!teamMembers.length) {
+        const msg = document.createElement('div');
+        msg.className = 'assign-dropdown-item';
+        msg.textContent = 'Sin equipo configurado';
+        msg.style.color = 'rgba(255,255,255,0.4)';
+        dropdown.appendChild(msg);
+      } else {
+        teamMembers.forEach(member => {
+          const initials = getMemberInitials(member);
+          const color = getMemberColor(member);
+          const isSelected = currentAssigned && currentAssigned.id === member.id;
+          const item = document.createElement('div');
+          item.className = `assign-dropdown-item${isSelected ? ' selected' : ''}`;
+          item.innerHTML = `
+            <div style="width:24px;height:24px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:white;flex-shrink:0">${initials}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.9)">${member.name}</div>
+              <div style="font-size:10px;color:rgba(255,255,255,0.45)">${member.role}</div>
+            </div>
+            ${isSelected ? '<span style="color:#3b82f6;font-size:11px">✓</span>' : ''}`;
+          item.onclick = (ev) => {
+            ev.stopPropagation();
+            assignItem(itemKey, isSelected ? null : member);
+            dropdown.remove();
+            activeDropdownKey = null;
+          };
+          dropdown.appendChild(item);
+        });
+      }
+
+      trigger.parentElement.appendChild(dropdown);
+    }
+
+    function assignItem(itemKey, member) {
+      if (member) {
+        itemAssignments[itemKey] = { id: member.id, name: member.name, role: member.role };
+      } else {
+        delete itemAssignments[itemKey];
+      }
+      // Re-render avatar in card
+      const wrap = document.querySelector(`[data-assign-key="${itemKey}"]`);
+      if (wrap) wrap.innerHTML = assignAvatarHtml(itemKey);
+      // Refresh equipo tab badges if visible
+      if (!document.getElementById('tab-equipo').classList.contains('hidden')) {
+        renderEquipoTab();
+      }
+      // Debounced save
+      if (saveAssignmentTimer) clearTimeout(saveAssignmentTimer);
+      saveAssignmentTimer = setTimeout(saveAssignments, 500);
+    }
+
+    async function saveAssignments() {
+      if (!currentAnalysisId) return;
+      try {
+        await fetch(FUNCTION_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'save_assignment', analysis_id: currentAnalysisId, assignments: itemAssignments }),
+        });
+      } catch (_) {}
+    }
+
+    async function saveTeamMember(id, newName) {
+      const member = teamMembers.find(m => m.id === id);
+      if (!member || member.name === newName.trim()) return;
+      member.name = newName.trim();
+      if (!currentSlug) return;
+      try {
+        await fetch(FUNCTION_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'update_team', slug: currentSlug, team: teamMembers }),
+        });
+      } catch (_) {}
+    }
+
+    // ── Team edit mode ───────────────────────────────
+    function toggleTeamEdit() {
+      teamEditMode = !teamEditMode;
+      const btn = document.getElementById('editTeamBtn');
+      btn.textContent = teamEditMode ? '✅ Guardar' : '✏️ Editar equipo';
+      btn.className = `text-xs transition px-3 py-2 rounded-lg flex items-center gap-1.5 ${teamEditMode ? 'bg-blue-600 hover:bg-blue-500' : 'bg-white/10 hover:bg-white/15'}`;
+      renderEquipoTab();
+    }
+
+    // ── Render Equipo Tab ────────────────────────────
+    function renderEquipoTab() {
+      const container = document.getElementById('orgChartContainer');
+      if (!container) return;
+      if (!teamMembers.length) {
+        container.innerHTML = '<p class="text-white/30 text-sm text-center py-8">Carga un análisis para ver el equipo.</p>';
+        return;
+      }
+
+      const counts = getAssignmentCounts();
+      const director = teamMembers.find(m => m.parent === null);
+      const reports = teamMembers.filter(m => m.parent !== null);
+
+      function nodeHtml(member) {
+        const color = getMemberColor(member);
+        const count = counts[member.id] || 0;
+        const nameHtml = teamEditMode
+          ? `<input class="node-name-input" value="${member.name.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"
+              onblur="saveTeamMember('${member.id}', this.value)"
+              onclick="event.stopPropagation()" />`
+          : `<div class="node-name">${member.name}</div>`;
+        return `<div class="org-node" style="border-top:3px solid ${color}">
+          <div class="node-badge ${count === 0 ? 'zero' : ''}">${count}</div>
+          ${nameHtml}
+          <div class="node-role">${member.role}</div>
+        </div>`;
+      }
+
+      const reportCount = reports.length;
+      const nodeWidth = 150;
+      const nodeGap = 16;
+      const totalRowWidth = reportCount * nodeWidth + (reportCount - 1) * nodeGap;
+
+      const directorHtml = director ? `
+        <div class="org-chart">
+          <div style="display:flex;flex-direction:column;align-items:center">
+            ${nodeHtml(director)}
+          </div>
+          <div class="org-connector-v"></div>
+          <div style="position:relative;display:flex;align-items:flex-start;justify-content:center;gap:${nodeGap}px">
+            <div style="position:absolute;top:0;left:${nodeWidth/2}px;right:${nodeWidth/2}px;height:2px;background:rgba(255,255,255,0.15)"></div>
+            ${reports.map(m => `
+              <div style="display:flex;flex-direction:column;align-items:center">
+                <div style="width:2px;height:24px;background:rgba(255,255,255,0.15)"></div>
+                ${nodeHtml(m)}
+              </div>`).join('')}
+          </div>
+        </div>` : '<p class="text-white/30 text-sm">Sin director definido.</p>';
+
+      container.innerHTML = `<div style="overflow-x:auto;padding-bottom:16px"><div style="min-width:${totalRowWidth + 32}px;padding:8px 16px">${directorHtml}</div></div>`;
+    }
+
+    // ── Assignee section for detail panel ────────────
+    function assigneeSectionHtml(itemKey) {
+      const assigned = itemAssignments[itemKey];
+      if (assigned) {
+        const member = teamMembers.find(m => m.id === assigned.id);
+        const color = member ? getMemberColor(member) : '#3b82f6';
+        const initials = getMemberInitials(assigned);
+        return `<div>
+          <p class="text-white/30 text-xs font-semibold uppercase tracking-wider mb-2">👤 Responsable</p>
+          <div class="flex items-center gap-3 bg-white/5 rounded-xl p-3 border border-white/10">
+            <div style="width:36px;height:36px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;flex-shrink:0">${initials}</div>
+            <div class="flex-1">
+              <div class="text-sm font-semibold">${assigned.name}</div>
+              <div class="text-white/40 text-xs">${assigned.role}</div>
+            </div>
+            <button onclick="assignItem('${itemKey}', null); refreshDetailAssignee('${itemKey}')"
+              class="text-white/30 hover:text-red-400 transition text-lg leading-none">✕</button>
+          </div>
+        </div>`;
+      }
+      if (!teamMembers.length) return '';
+      const chips = teamMembers.map(m => {
+        const color = getMemberColor(m);
+        const initials = getMemberInitials(m);
+        const safeM = JSON.stringify({id:m.id,name:m.name,role:m.role,dept:m.dept}).replace(/'/g, "\\'");
+        return `<button onclick="assignItem('${itemKey}', JSON.parse('${safeM}')); refreshDetailAssignee('${itemKey}')"
+          class="flex items-center gap-2 bg-white/5 hover:bg-white/10 transition rounded-lg px-3 py-2 text-left">
+          <div style="width:28px;height:28px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:white;flex-shrink:0">${initials}</div>
+          <div>
+            <div style="font-size:11px;font-weight:600;color:rgba(255,255,255,0.85)">${m.name}</div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.4)">${m.role}</div>
+          </div>
+        </button>`;
+      }).join('');
+      return `<div>
+        <p class="text-white/30 text-xs font-semibold uppercase tracking-wider mb-2">👤 Responsable</p>
+        <p class="text-white/30 text-xs mb-3">Sin asignar — selecciona un responsable:</p>
+        <div class="grid grid-cols-2 gap-2">${chips}</div>
+      </div>`;
+    }
+
+    function refreshDetailAssignee(itemKey) {
+      const el = document.getElementById(`detail-assignee-${itemKey}`);
+      if (el) el.innerHTML = assigneeSectionHtml(itemKey);
+    }
+
     // ── Render Results ───────────────────────────────
     function renderResults(data, sourceLabel) {
       lastAnalysisData = data;
       benchmarkLoaded = false;
       lastBenchmarkResults = null;
-      itemAssignments = {}; // reset assignments on new analysis
       if (data.analysis_id) currentAnalysisId = data.analysis_id;
       const { voc_score, categories, strengths, improvements, summary, alerts = [], insights = [], slug, nps_estimated, compliments = [] } = data;
       if (slug) currentSlug = slug;
@@ -1283,13 +1110,26 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         </li>`;
       }).join('');
 
-      // Store alert/insight data — cards built by rebuildAlertCards() at end of renderResults
+      // Alerts — compact cards with assignment
+      const alertBorderColor = { P0: '#dc2626', P1: '#ef4444', P2: '#f97316', P3: '#eab308', P4: '#22c55e' };
+      const alertTime = { P0: 'AHORA', P1: '< 2h', P2: '< 24h', P3: '72h', P4: '' };
+      const alertIconMap = { P0: '🚨', P1: '🔴', P2: '🟠', P3: '🟡', P4: '🟢' };
       detailData.alerts = alerts;
-      detailData.insights = insights;
-      // Seed DOM placeholders so sections exist before rebuildAlertCards runs
-      document.getElementById('guestAlertSection').classList.add('hidden');
-      document.getElementById('alertsList').innerHTML = '<p class="text-white/30 text-sm">No se detectaron alertas en las reviews analizadas.</p>';
-      document.getElementById('insightsList').innerHTML = '';
+
+      const p0Alerts = alerts.filter(a => a.priority === 'P0');
+      const otherAlerts = alerts.filter(a => a.priority !== 'P0');
+      const guestAlertSection = document.getElementById('guestAlertSection');
+      const guestAlertsList = document.getElementById('guestAlertsList');
+      const alertsEl = document.getElementById('alertsList');
+      if (p0Alerts.length > 0) {
+        guestAlertSection.classList.remove('hidden');
+        guestAlertsList.innerHTML = p0Alerts.map(a => buildAlertCard(a, alerts.indexOf(a), alertBorderColor, alertTime, alertIconMap)).join('');
+      } else {
+        guestAlertSection.classList.add('hidden');
+      }
+      if (otherAlerts.length > 0) {
+        alertsEl.innerHTML = otherAlerts.map(a => buildAlertCard(a, alerts.indexOf(a), alertBorderColor, alertTime, alertIconMap)).join('');
+      }
 
       // Felicitaciones
       const complimentsEl = document.getElementById('complimentsList');
@@ -1304,6 +1144,29 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
             </div>
           </div>`).join('');
       }
+
+      // Insights — compact cards with assignment
+      const insightStyle = {
+        strength:    { icon: '✨', bg: 'bg-green-500/10',  border: 'border-green-500/30',  text: 'text-green-400' },
+        warning:     { icon: '⚠️', bg: 'bg-orange-500/10', border: 'border-orange-500/30', text: 'text-orange-400' },
+        opportunity: { icon: '🚀', bg: 'bg-blue-500/10',   border: 'border-blue-500/30',   text: 'text-blue-400' },
+      };
+      detailData.insights = insights;
+      document.getElementById('insightsList').innerHTML = insights.map((ins, idx) => {
+        const st = insightStyle[ins.type] || insightStyle.opportunity;
+        const itemKey = `insight_${idx}`;
+        return `<div class="${st.bg} border ${st.border} rounded-xl px-4 py-3 flex items-start gap-3 group">
+          <span class="text-xl flex-shrink-0 mt-0.5 cursor-pointer" onclick="showInsightDetail(${idx})">${st.icon}</span>
+          <div class="flex-1 min-w-0 cursor-pointer" onclick="showInsightDetail(${idx})">
+            <div class="font-semibold text-sm ${st.text}">${ins.title}</div>
+            <div class="text-white/50 text-xs mt-0.5 line-clamp-2">${ins.description}</div>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <div data-assign-key="${itemKey}" style="position:relative">${assignAvatarHtml(itemKey)}</div>
+            <span class="text-white/20 group-hover:text-white/50 transition text-sm flex-shrink-0 mt-1 cursor-pointer" onclick="showInsightDetail(${idx})">→</span>
+          </div>
+        </div>`;
+      }).join('');
 
       // Share URL
       if (slug) {
@@ -1326,16 +1189,39 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
 
       setStep(3);
       switchDashTab('dashboard');
-      // Build alert/insight cards with assignment UI
-      rebuildAlertCards();
+    }
+
+    // ── Build alert card ─────────────────────────────
+    function buildAlertCard(a, idx, alertBorderColor, alertTime, alertIconMap) {
+      const itemKey = `alert_${idx}`;
+      return `
+        <div class="glass rounded-xl px-4 py-3 border-l-4 flex items-center gap-3 hover:bg-white/5 transition group" style="border-color:${alertBorderColor[a.priority] || '#eab308'}">
+          <span class="text-lg flex-shrink-0 cursor-pointer" onclick="showAlertDetail(${idx})">${alertIconMap[a.priority] || '🟡'}</span>
+          <div class="flex-1 min-w-0 cursor-pointer" onclick="showAlertDetail(${idx})">
+            <div class="font-semibold text-sm flex items-center gap-2 flex-wrap">
+              ${a.title}
+              ${a.priority === 'P0' ? '<span class="text-xs font-bold px-2 py-0.5 rounded-full bg-red-600 text-white animate-pulse">URGENTE</span>' : ''}
+            </div>
+            <div class="text-white/40 text-xs mt-0.5 line-clamp-2">${a.summary}</div>
+            ${a.guest_name ? `<div class="mt-1"><span class="text-xs bg-white/10 px-2 py-0.5 rounded-full text-white/60">👤 ${a.guest_name}</span></div>` : ''}
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            ${alertTime[a.priority] ? `<span class="text-xs font-medium px-2 py-0.5 rounded-full" style="background:${alertBorderColor[a.priority]}20;color:${alertBorderColor[a.priority]}">${alertTime[a.priority]}</span>` : ''}
+            <div data-assign-key="${itemKey}" style="position:relative">${assignAvatarHtml(itemKey)}</div>
+            <span class="text-white/20 group-hover:text-white/50 transition text-sm cursor-pointer" onclick="showAlertDetail(${idx})">→</span>
+          </div>
+        </div>`;
     }
 
     // ── Dashboard Tabs ───────────────────────────────
     function switchDashTab(tab) {
+      if (tab === 'equipo' && !teamMembers.length) {
+        teamMembers = JSON.parse(JSON.stringify(DEFAULT_TEAM));
+      }
       ['dashboard','alertas','insights','benchmark','equipo'].forEach(t => {
         document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
         const btn = document.getElementById(`dtab-${t}`);
-        btn.className = `dtab flex-1 rounded-lg py-2.5 text-sm font-medium transition ${t === tab ? 'bg-white/15 text-white' : 'text-white/40 hover:text-white/70'}`;
+        btn.className = `dtab flex-1 rounded-lg py-2.5 text-sm font-medium transition whitespace-nowrap ${t === tab ? 'bg-white/15 text-white' : 'text-white/40 hover:text-white/70'}`;
       });
       if (tab === 'benchmark') initBenchmarkTab();
       if (tab === 'equipo') renderEquipoTab();
@@ -1367,7 +1253,6 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
     function findReview(quote) {
       if (!hotelReviews.length || !quote) return null;
       const needle = quote.toLowerCase().trim();
-      // try matching on first 40 chars or first 6 words
       const short = needle.substring(0, 40);
       const words = needle.split(/\s+/).slice(0, 6).join(' ');
       return hotelReviews.find(r => {
@@ -1413,6 +1298,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       const icons = { P0: '🚨', P1: '🔴', P2: '🟠', P3: '🟡', P4: '🟢' };
       const times = { P0: 'ACCIÓN INMEDIATA', P1: 'Actuar en < 2h', P2: 'Actuar en < 24h', P3: 'Actuar en 72h' };
       const color = borderColor[a.priority] || '#eab308';
+      const itemKey = `alert_${idx}`;
       openDetailPanel(
         `<div class="flex items-center gap-2">${icons[a.priority] || '🟡'} <span>${a.title}</span></div>`,
         `<div class="space-y-5">
@@ -1442,6 +1328,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
             <p class="text-white/30 text-xs font-semibold uppercase tracking-wider mb-2">Respuesta sugerida al cliente</p>
             <p class="text-white/60 text-sm italic leading-relaxed">"${a.suggested_response}"</p>
           </div>` : ''}
+          <div id="detail-assignee-${itemKey}">${assigneeSectionHtml(itemKey)}</div>
         </div>`
       );
     }
@@ -1453,6 +1340,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       const icons = { strength: '✨', warning: '⚠️', opportunity: '🚀' };
       const labels = { strength: 'Fortaleza', warning: 'Advertencia', opportunity: 'Oportunidad' };
       const color = colors[ins.type] || '#3b82f6';
+      const itemKey = `insight_${idx}`;
       openDetailPanel(
         `<div class="flex items-center gap-2">${icons[ins.type] || '🚀'} <span>${ins.title}</span></div>`,
         `<div class="space-y-5">
@@ -1470,6 +1358,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
             <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:${color}">Recomendación para el director</p>
             <p class="text-white/90 text-sm leading-relaxed">${ins.action}</p>
           </div>` : ''}
+          <div id="detail-assignee-${itemKey}">${assigneeSectionHtml(itemKey)}</div>
         </div>`
       );
     }
@@ -1478,7 +1367,6 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
     function initBenchmarkTab() {
       const hasCompetitors = hotelProfile.competitors && hotelProfile.competitors.length > 0;
 
-      // If we have stored benchmark results from a loaded analysis, render them now
       if (lastBenchmarkResults && !benchmarkLoaded) {
         renderBenchmarkResults(lastBenchmarkResults);
         lastBenchmarkResults = null;
@@ -1533,11 +1421,11 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
     }
 
     const BENCHMARK_COLORS = [
-      { bg: 'rgba(59,130,246,0.2)', border: '#3b82f6' },   // blue – current hotel
-      { bg: 'rgba(249,115,22,0.2)', border: '#f97316' },   // orange
-      { bg: 'rgba(34,197,94,0.2)',  border: '#22c55e' },   // green
-      { bg: 'rgba(168,85,247,0.2)', border: '#a855f7' },   // purple
-      { bg: 'rgba(239,68,68,0.2)',  border: '#ef4444' },   // red
+      { bg: 'rgba(59,130,246,0.2)', border: '#3b82f6' },
+      { bg: 'rgba(249,115,22,0.2)', border: '#f97316' },
+      { bg: 'rgba(34,197,94,0.2)',  border: '#22c55e' },
+      { bg: 'rgba(168,85,247,0.2)', border: '#a855f7' },
+      { bg: 'rgba(239,68,68,0.2)',  border: '#ef4444' },
     ];
 
     function renderBenchmarkResults(results) {
@@ -1582,7 +1470,6 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         }
       });
 
-      // Score table
       const tableEl = document.getElementById('benchmarkTable');
       const headerCols = ['Hotel', 'VOC Score', ...labels].map(h =>
         `<th class="text-left text-xs font-semibold text-white/50 uppercase tracking-wide pb-3 pr-4 whitespace-nowrap">${h}</th>`).join('');
@@ -1625,7 +1512,6 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
     async function runSync() {
       const btn = document.getElementById('syncBtn');
       const icon = document.getElementById('syncBtnIcon');
-      // If no place_id cached (e.g. old analysis loaded from slug), search by name first
       if (!selectedPlaceId) {
         btn.disabled = true;
         icon.textContent = '⌕';
@@ -1699,13 +1585,25 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         photo_url: data.hotel.photo_url || null,
         logo_url: data.hotel.logo_url || null,
       };
-      // Restore place_id so sync button appears
       if (data.hotel.place_id) selectedPlaceId = data.hotel.place_id;
+
+      // Initialize team from hotel data or use default
+      if (data.hotel.team && Array.isArray(data.hotel.team) && data.hotel.team.length > 0) {
+        teamMembers = data.hotel.team;
+      } else {
+        teamMembers = JSON.parse(JSON.stringify(DEFAULT_TEAM));
+      }
+
       const a = data.analysis;
       if (a) {
         if (a.id) currentAnalysisId = a.id;
-        // Restore reviews so detail panel evidence links work
         if (a.reviews_data?.length) hotelReviews = a.reviews_data;
+        // Restore assignments
+        if (a.assignments && typeof a.assignments === 'object' && !Array.isArray(a.assignments)) {
+          itemAssignments = a.assignments;
+        } else {
+          itemAssignments = {};
+        }
         renderResults({
           ...a,
           alerts: a.alerts || [],
@@ -1721,6 +1619,14 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
     // ── Init ─────────────────────────────────────────
     const urlSlug = new URLSearchParams(window.location.search).get('h');
     if (urlSlug) loadFromSlug(urlSlug);
+
+    // Close dropdown on outside click
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.assign-dropdown') && !e.target.closest('.assign-avatar')) {
+        const existing = document.querySelector('.assign-dropdown');
+        if (existing) { existing.remove(); activeDropdownKey = null; }
+      }
+    });
 
     function getScoreColor(s) { return s >= 75 ? '#22c55e' : s >= 50 ? '#f59e0b' : '#ef4444'; }
     function getScoreLabel(s) {
