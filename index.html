@@ -457,6 +457,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
     let benchmarkRadarInstance = null;
     let hotelProfile = {};
     let hotelBranding = { photo_url: null, logo_url: null };
+    let hotelReviews = [];
     let lastAnalysisData = null;
     let benchmarkLoaded = false;
     let detailData = { alerts: [], insights: [] };
@@ -610,6 +611,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
           const data = await res.json();
           if (data.error) throw new Error(data.error);
           reviews = data.reviews || [];
+          hotelReviews = data.reviewsData || [];
           sourceLabel = 'Google Reviews';
           hotelBranding = { photo_url: data.photo_url || null, logo_url: data.logo_url || null };
           if (reviews.length === 0) { alert('No se encontraron reviews para este hotel.'); setLoading(false); return; }
@@ -620,6 +622,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         }
       } else {
         reviews = parseReviews(document.getElementById('reviewsInput').value);
+        hotelReviews = [];
         sourceLabel = 'Input manual';
         if (reviews.length === 0) { alert('Pega al menos una review antes de analizar.'); return; }
         setLoading(true);
@@ -841,6 +844,54 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
     }
 
     // ── Detail Panel ─────────────────────────────────
+    // ── Review card helpers ───────────────────────────
+    const AVATAR_COLORS = ['#3b82f6','#8b5cf6','#22c55e','#f97316','#ec4899','#14b8a6'];
+    function renderReviewCard(review, accentColor) {
+      const initial = (review.author_name || '?')[0].toUpperCase();
+      const avatarColor = AVATAR_COLORS[initial.charCodeAt(0) % AVATAR_COLORS.length];
+      const stars = review.rating ? '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating) : '';
+      const starsColor = review.rating >= 4 ? '#facc15' : review.rating >= 3 ? '#f97316' : '#ef4444';
+      return `<div class="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2">
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 text-white" style="background:${avatarColor}">${initial}</div>
+            <span class="text-sm font-medium">${review.author_name || 'Usuario'}</span>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            ${stars ? `<span class="text-xs" style="color:${starsColor}">${stars}</span>` : ''}
+            ${review.relative_time ? `<span class="text-white/30 text-xs">${review.relative_time}</span>` : ''}
+          </div>
+        </div>
+        <p class="text-white/60 text-xs leading-relaxed">"${review.text}"</p>
+      </div>`;
+    }
+
+    function findReview(quote) {
+      if (!hotelReviews.length || !quote) return null;
+      const needle = quote.toLowerCase().trim();
+      // try matching on first 40 chars or first 6 words
+      const short = needle.substring(0, 40);
+      const words = needle.split(/\s+/).slice(0, 6).join(' ');
+      return hotelReviews.find(r => {
+        const t = r.text.toLowerCase();
+        return (short.length > 10 && t.includes(short)) || (words.length > 15 && t.includes(words));
+      }) || null;
+    }
+
+    function evidenceHtml(quotes, accentColor) {
+      if (!quotes?.length) return '';
+      const cards = quotes.map(q => {
+        const rev = findReview(q);
+        return rev
+          ? renderReviewCard(rev, accentColor)
+          : `<blockquote class="text-white/60 text-xs italic leading-relaxed bg-white/5 rounded-xl px-4 py-3" style="border-left:3px solid ${accentColor}40">"${q}"</blockquote>`;
+      }).join('');
+      return `<div>
+        <p class="text-white/30 text-xs font-semibold uppercase tracking-wider mb-2">Reviews que lo evidencian</p>
+        <div class="space-y-2">${cards}</div>
+      </div>`;
+    }
+
     function openDetailPanel(headerHtml, bodyHtml) {
       document.getElementById('panelHeader').innerHTML = headerHtml;
       document.getElementById('panelBody').innerHTML = bodyHtml;
@@ -879,10 +930,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
             <p class="text-white/30 text-xs font-semibold uppercase tracking-wider mb-2">Por qué importa</p>
             <p class="text-white/70 text-sm leading-relaxed">${a.reasoning}</p>
           </div>` : ''}
-          ${a.evidence?.length ? `<div>
-            <p class="text-white/30 text-xs font-semibold uppercase tracking-wider mb-2">Evidencia en reviews</p>
-            <div class="space-y-2">${a.evidence.map(e => `<blockquote class="text-white/60 text-sm italic leading-relaxed bg-white/5 rounded-xl px-4 py-3 border-l-3" style="border-left:3px solid ${color}40">"${e}"</blockquote>`).join('')}</div>
-          </div>` : ''}
+          ${evidenceHtml(a.evidence, color)}
           <div class="bg-white/5 rounded-xl p-4 border border-white/10">
             <p class="text-white/30 text-xs font-semibold uppercase tracking-wider mb-2">Acción inmediata</p>
             <p class="text-white/90 text-sm leading-relaxed">${a.immediate_action}</p>
@@ -914,10 +962,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
             <p class="text-white/30 text-xs font-semibold uppercase tracking-wider mb-2">Por qué importa</p>
             <p class="text-white/70 text-sm leading-relaxed">${ins.reasoning}</p>
           </div>` : ''}
-          ${ins.evidence?.length ? `<div>
-            <p class="text-white/30 text-xs font-semibold uppercase tracking-wider mb-2">Lo que dicen los clientes</p>
-            <div class="space-y-2">${ins.evidence.map(e => `<blockquote class="text-white/60 text-sm italic leading-relaxed bg-white/5 rounded-xl px-4 py-3" style="border-left:3px solid ${color}40">"${e}"</blockquote>`).join('')}</div>
-          </div>` : ''}
+          ${evidenceHtml(ins.evidence, color)}
           ${ins.action ? `<div class="rounded-xl p-4 border" style="background:${color}10;border-color:${color}30">
             <p class="text-xs font-semibold uppercase tracking-wider mb-2" style="color:${color}">Recomendación para el director</p>
             <p class="text-white/90 text-sm leading-relaxed">${ins.action}</p>
