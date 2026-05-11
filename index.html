@@ -674,6 +674,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
               place_id: selectedPlaceId,
             },
             reviews,
+            reviews_data: hotelReviews,
             source: sourceLabel,
           }),
         });
@@ -1238,13 +1239,22 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         photo_url: data.hotel.photo_url || null,
         logo_url: data.hotel.logo_url || null,
       };
+      // Restore place_id so sync button appears
+      if (data.hotel.place_id) selectedPlaceId = data.hotel.place_id;
       const a = data.analysis;
       if (a) {
         if (a.id) currentAnalysisId = a.id;
-        renderResults({ ...a, alerts: a.alerts || [], insights: a.insights || [], slug }, a.source || 'Guardado');
-        if (a.benchmark) {
-          lastBenchmarkResults = a.benchmark;
-        }
+        // Restore reviews so detail panel evidence links work
+        if (a.reviews_data?.length) hotelReviews = a.reviews_data;
+        renderResults({
+          ...a,
+          alerts: a.alerts || [],
+          insights: a.insights || [],
+          compliments: a.compliments || [],
+          nps_estimated: a.nps_estimated ?? null,
+          slug,
+        }, a.source || 'Guardado');
+        if (a.benchmark) lastBenchmarkResults = a.benchmark;
       }
     }
 
