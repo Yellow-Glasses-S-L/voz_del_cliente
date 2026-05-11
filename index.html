@@ -369,7 +369,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       <div id="tab-insights" class="hidden space-y-6">
         <div>
           <h3 class="font-semibold mb-3 text-white/80">Insights estratégicos</h3>
-          <div id="insightsList" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6"></div>
+          <div id="insightsList" class="space-y-4 mb-6"></div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="glass rounded-2xl p-6">
@@ -713,17 +713,24 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       const alertsEl = document.getElementById('alertsList');
       if (alerts.length > 0) {
         alertsEl.innerHTML = alerts.map(a => `
-          <div class="glass rounded-xl p-4 border-l-4" style="border-color:${alertBorderColor[a.priority] || '#eab308'}">
-            <div class="flex items-center gap-2 mb-2">
+          <div class="glass rounded-xl p-5 border-l-4 space-y-3" style="border-color:${alertBorderColor[a.priority] || '#eab308'}">
+            <div class="flex items-center gap-2 flex-wrap">
               <span>${alertIconMap[a.priority] || '🟡'}</span>
               <span class="font-semibold text-sm">${a.title}</span>
-              <span class="text-xs text-white/30 bg-white/5 px-2 py-0.5 rounded-full ml-1">${a.affected_area}</span>
-              ${alertTime[a.priority] ? `<span class="ml-auto text-xs text-white/40">Actuar en ${alertTime[a.priority]}</span>` : ''}
+              <span class="text-xs text-white/40 bg-white/5 px-2 py-0.5 rounded-full">${a.affected_area}</span>
+              ${alertTime[a.priority] ? `<span class="ml-auto text-xs font-medium" style="color:${alertBorderColor[a.priority]}">Actuar en ${alertTime[a.priority]}</span>` : ''}
             </div>
-            <p class="text-white/60 text-xs mb-3">${a.summary}</p>
-            <div class="text-xs bg-white/5 rounded-lg px-3 py-2 text-white/70 mb-2"><strong>Acción:</strong> ${a.immediate_action}</div>
-            ${a.suggested_response ? `<div class="text-xs text-white/30 italic border-l-2 border-white/10 pl-2">"${a.suggested_response}"</div>` : ''}
-            ${a.evidence?.length ? `<div class="mt-2 flex flex-wrap gap-2">${a.evidence.map(e => `<span class="text-xs bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white/40 italic">"${e}"</span>`).join('')}</div>` : ''}
+            <p class="text-white/70 text-xs leading-relaxed">${a.summary}</p>
+            ${a.reasoning ? `<div class="text-white/50 text-xs leading-relaxed border-l-2 border-white/10 pl-3">${a.reasoning}</div>` : ''}
+            ${a.evidence?.length ? `
+              <div class="space-y-1.5">
+                <p class="text-white/30 text-xs font-medium uppercase tracking-wider">Evidencia en reviews</p>
+                ${a.evidence.map(e => `<blockquote class="text-white/50 text-xs italic leading-relaxed bg-white/5 rounded-lg px-3 py-2 border-l-2" style="border-color:${alertBorderColor[a.priority]}60">"${e}"</blockquote>`).join('')}
+              </div>` : ''}
+            <div class="flex gap-3 flex-wrap pt-1">
+              <div class="flex-1 text-xs bg-white/5 rounded-lg px-3 py-2 text-white/70 min-w-0"><strong class="text-white/90">Acción:</strong> ${a.immediate_action}</div>
+              ${a.suggested_response ? `<div class="flex-1 text-xs text-white/40 italic border border-white/10 rounded-lg px-3 py-2 min-w-0"><strong class="text-white/60 not-italic">Respuesta sugerida:</strong> "${a.suggested_response}"</div>` : ''}
+            </div>
           </div>`).join('');
       }
 
@@ -742,12 +749,25 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       }
 
       // Insights
-      const insightStyle = { strength: { icon: '✨', bg: 'bg-green-500/10', border: 'border-green-500/30', text: 'text-green-400' }, warning: { icon: '⚠️', bg: 'bg-orange-500/10', border: 'border-orange-500/30', text: 'text-orange-400' }, opportunity: { icon: '🚀', bg: 'bg-blue-500/10', border: 'border-blue-500/30', text: 'text-blue-400' } };
+      const insightStyle = {
+        strength:    { icon: '✨', bg: 'bg-green-500/10',  border: 'border-green-500/30',  text: 'text-green-400',  quoteBar: '#22c55e' },
+        warning:     { icon: '⚠️', bg: 'bg-orange-500/10', border: 'border-orange-500/30', text: 'text-orange-400', quoteBar: '#f97316' },
+        opportunity: { icon: '🚀', bg: 'bg-blue-500/10',   border: 'border-blue-500/30',   text: 'text-blue-400',   quoteBar: '#3b82f6' },
+      };
       document.getElementById('insightsList').innerHTML = insights.map(ins => {
         const st = insightStyle[ins.type] || insightStyle.opportunity;
-        return `<div class="${st.bg} border ${st.border} rounded-xl p-4">
-          <div class="flex items-center gap-2 mb-2"><span>${st.icon}</span><span class="font-semibold text-sm ${st.text}">${ins.title}</span></div>
-          <p class="text-white/60 text-xs leading-relaxed">${ins.description}</p>
+        const evidenceHtml = ins.evidence?.length
+          ? `<div class="mt-3 space-y-1.5">
+               <p class="text-white/30 text-xs font-medium uppercase tracking-wider">De las reviews</p>
+               ${ins.evidence.map(e => `<blockquote class="text-white/50 text-xs italic leading-relaxed bg-white/5 rounded-lg px-3 py-2 border-l-2" style="border-color:${st.quoteBar}60">"${e}"</blockquote>`).join('')}
+             </div>`
+          : '';
+        return `<div class="${st.bg} border ${st.border} rounded-xl p-5 space-y-2">
+          <div class="flex items-center gap-2"><span>${st.icon}</span><span class="font-semibold text-sm ${st.text}">${ins.title}</span></div>
+          <p class="text-white/70 text-xs leading-relaxed">${ins.description}</p>
+          ${ins.reasoning ? `<p class="text-white/50 text-xs leading-relaxed border-l-2 border-white/10 pl-3">${ins.reasoning}</p>` : ''}
+          ${ins.action ? `<div class="text-xs bg-white/5 rounded-lg px-3 py-2 text-white/70"><strong class="text-white/90">Recomendación:</strong> ${ins.action}</div>` : ''}
+          ${evidenceHtml}
         </div>`;
       }).join('');
 
