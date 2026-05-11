@@ -1059,6 +1059,10 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
 
       // If we have stored benchmark results from a loaded analysis, render them now
       if (lastBenchmarkResults && !benchmarkLoaded) {
+        // Restore competitors from saved results if hotelProfile.competitors is empty
+        if (!hotelProfile.competitors?.length) {
+          hotelProfile.competitors = lastBenchmarkResults.filter(h => !h.is_current).map(h => h.name);
+        }
         renderBenchmarkResults(lastBenchmarkResults);
         lastBenchmarkResults = null;
         return;
@@ -1131,6 +1135,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       const input = document.getElementById('new-competitor-input');
       const name = input.value.trim();
       if (!name) return;
+      if (!hotelProfile.competitors) hotelProfile.competitors = [];
       if (hotelProfile.competitors.some(c => c.toLowerCase() === name.toLowerCase())) {
         alert('Ese hotel ya está en la lista de competidores.');
         return;
