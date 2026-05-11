@@ -776,6 +776,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         children: [],
       });
       renderEquipoTab();
+      persistTeam();
     }
 
     // ── Org Chart: delete node ───────────────────────
@@ -791,6 +792,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       removeNodeFromTree(orgTree, id);
       renderEquipoTab();
       rebuildAlertCards();
+      persistTeam();
     }
 
     // ── Org Chart: rename node ───────────────────────
@@ -810,6 +812,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       } else {
         btn.className = 'text-xs px-3 py-1.5 rounded-lg border transition font-medium border-white/20 text-white/50 hover:text-white hover:border-white/40';
         btn.textContent = '✏️ Editar';
+        persistTeam();
       }
       renderEquipoTab();
     }
@@ -830,6 +833,32 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       </select>`;
     }
 
+    // ── Persist assignments to DB (debounced) ───────
+    let _saveAssignTimer = null;
+    function persistAssignments() {
+      clearTimeout(_saveAssignTimer);
+      _saveAssignTimer = setTimeout(async () => {
+        if (!currentAnalysisId) return;
+        await fetch(FUNCTION_URL, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'save_assignment', analysis_id: currentAnalysisId, assignments: itemAssignments }),
+        });
+      }, 600);
+    }
+
+    // ── Persist org tree to DB (debounced) ───────────
+    let _saveTeamTimer = null;
+    function persistTeam() {
+      clearTimeout(_saveTeamTimer);
+      _saveTeamTimer = setTimeout(async () => {
+        if (!currentSlug) return;
+        await fetch(FUNCTION_URL, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'update_team', slug: currentSlug, team: orgTree }),
+        });
+      }, 600);
+    }
+
     // ── Assign item to member ────────────────────────
     function assignItem(itemKey, memberId) {
       if (memberId) {
@@ -837,9 +866,9 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       } else {
         delete itemAssignments[itemKey];
       }
-      // Re-render semáforos without switching tabs
       renderEquipoTab();
       rebuildAlertCards();
+      persistAssignments();
     }
 
     // ── Rebuild alert/insight card HTML with assignment UI ──
@@ -940,7 +969,8 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
           ${node.id !== orgTree.id ? `<button class="org-action-btn delete" onclick="event.stopPropagation();deleteOrgNode('${node.id}')">🗑️</button>` : ''}
         </div>` : '';
 
-      const cardHtml = `<div class="org-node-card" data-id="${node.id}">
+      const clickHandler = orgEditMode ? '' : `onclick="showMemberDetail('${node.id}')" style="cursor:pointer"`;
+      const cardHtml = `<div class="org-node-card" data-id="${node.id}" ${clickHandler}>
         ${countBadge}
         <span class="org-semaforo" style="background:${sem.color}"></span>
         <div class="org-node-name" ${editable}
@@ -982,6 +1012,57 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       const root = document.getElementById('orgChartRoot');
       if (!root) return;
       root.innerHTML = renderOrgNode(orgTree);
+    }
+
+    // ── Member detail panel ─────────────────────────
+    function showMemberDetail(memberId) {
+      const node = findNode(orgTree, memberId);
+      if (!node) return;
+      const sem = computeSemaforo(memberId);
+      const alerts = lastAnalysisData?.alerts || [];
+      const insights = lastAnalysisData?.insights || [];
+      const alertBorderColor = { P0: '#dc2626', P1: '#ef4444', P2: '#f97316', P3: '#eab308', P4: '#22c55e' };
+      const alertIcon = { P0: '🚨', P1: '🔴', P2: '🟠', P3: '🟡', P4: '🟢' };
+
+      const assignedAlerts = Object.entries(itemAssignments)
+        .filter(([k, v]) => v === memberId && k.startsWith('alert_'))
+        .map(([k]) => alerts[parseInt(k.replace('alert_', ''))])
+        .filter(Boolean);
+      const assignedInsights = Object.entries(itemAssignments)
+        .filter(([k, v]) => v === memberId && k.startsWith('insight_'))
+        .map(([k]) => insights[parseInt(k.replace('insight_', ''))])
+        .filter(Boolean);
+
+      const semDot = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${sem.color};margin-right:6px"></span>`;
+      const header = `<div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm text-white flex-shrink-0" style="background:${node.deptColor}">${node.name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()}</div>
+        <div><div class="font-semibold">${node.name}</div><div class="text-white/40 text-xs">${node.role || 'Sin cargo'}</div></div>
+        <div class="ml-auto flex items-center gap-1 text-xs">${semDot}<span>${sem.count} pendiente${sem.count !== 1 ? 's' : ''}</span></div>
+      </div>`;
+
+      const noItems = `<p class="text-white/30 text-sm text-center py-6">Sin elementos asignados</p>`;
+      const alertsHtml = assignedAlerts.length ? `
+        <div>
+          <h4 class="text-xs font-semibold text-white/50 uppercase tracking-widest mb-3">Alertas (${assignedAlerts.length})</h4>
+          <div class="space-y-2">${assignedAlerts.map(a => `
+            <div class="glass rounded-xl px-4 py-3 border-l-4 flex items-start gap-3" style="border-color:${alertBorderColor[a.priority]||'#eab308'}">
+              <span class="flex-shrink-0">${alertIcon[a.priority]||'🟡'}</span>
+              <div><div class="font-semibold text-sm">${a.title}</div><div class="text-white/40 text-xs mt-0.5">${a.summary}</div></div>
+            </div>`).join('')}
+          </div>
+        </div>` : '';
+      const insightsHtml = assignedInsights.length ? `
+        <div>
+          <h4 class="text-xs font-semibold text-white/50 uppercase tracking-widest mb-3">Insights (${assignedInsights.length})</h4>
+          <div class="space-y-2">${assignedInsights.map(ins => `
+            <div class="glass rounded-xl px-4 py-3 flex items-start gap-3">
+              <span>${ins.type==='strength'?'✨':ins.type==='warning'?'⚠️':'🚀'}</span>
+              <div><div class="font-semibold text-sm">${ins.title}</div><div class="text-white/40 text-xs mt-0.5">${ins.description}</div></div>
+            </div>`).join('')}
+          </div>
+        </div>` : '';
+
+      openDetailPanel(header, (alertsHtml || insightsHtml) ? alertsHtml + insightsHtml : noItems);
     }
 
     // ── Focus tags ──────────────────────────────────
@@ -1702,11 +1783,15 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       };
       // Restore place_id so sync button appears
       if (data.hotel.place_id) selectedPlaceId = data.hotel.place_id;
+      // Restore org chart from DB (hotel.team)
+      if (data.hotel.team?.id) orgTree = data.hotel.team;
       const a = data.analysis;
       if (a) {
         if (a.id) currentAnalysisId = a.id;
         // Restore reviews so detail panel evidence links work
         if (a.reviews_data?.length) hotelReviews = a.reviews_data;
+        // Restore assignments
+        if (a.assignments && Object.keys(a.assignments).length) itemAssignments = a.assignments;
         renderResults({
           ...a,
           alerts: a.alerts || [],
