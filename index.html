@@ -274,7 +274,12 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
             <h2 class="text-2xl font-extrabold" id="resultHotelName"></h2>
             <p class="text-white/70 text-sm" id="resultHotelMeta"></p>
           </div>
-          <button onclick="goToStep2()" class="ml-auto text-xs text-white/50 hover:text-white transition bg-white/10 px-3 py-1.5 rounded-lg">← Nueva análisis</button>
+          <div class="ml-auto flex items-center gap-2">
+            <button onclick="runSync()" id="syncBtn" class="text-xs text-white/50 hover:text-white transition bg-white/10 px-3 py-1.5 rounded-lg flex items-center gap-1.5 hidden">
+              <span id="syncBtnIcon">↻</span> Sync
+            </button>
+            <button onclick="goToStep2()" class="text-xs text-white/50 hover:text-white transition bg-white/10 px-3 py-1.5 rounded-lg">← Nueva análisis</button>
+          </div>
         </div>
       </div>
       <!-- Fallback header (no photo) -->
@@ -462,6 +467,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
     let benchmarkLoaded = false;
     let detailData = { alerts: [], insights: [] };
     let currentAnalysisId = null;
+    let currentSlug = null;
     let lastBenchmarkResults = null;
 
     // ── Focus tags ──────────────────────────────────
@@ -645,6 +651,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
               focus_areas: hotelProfile.focus,
               photo_url: hotelBranding.photo_url,
               logo_url: hotelBranding.logo_url,
+              place_id: selectedPlaceId,
             },
             reviews,
             source: sourceLabel,
@@ -676,6 +683,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       lastBenchmarkResults = null;
       if (data.analysis_id) currentAnalysisId = data.analysis_id;
       const { voc_score, categories, strengths, improvements, summary, alerts = [], insights = [], slug, nps_estimated, compliments = [] } = data;
+      if (slug) currentSlug = slug;
 
       const metaText = [hotelProfile.location, hotelProfile.stars ? hotelProfile.stars + '★' : '', hotelProfile.type, sourceLabel].filter(Boolean).join(' · ');
       const photo = hotelBranding.photo_url || data.photo_url || null;
@@ -827,6 +835,10 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         document.getElementById('competitorSection').classList.remove('hidden');
         document.getElementById('competitorList').innerHTML = hotelProfile.competitors.map(c =>
           `<span class="text-xs bg-white/10 px-3 py-1 rounded-full text-white/60">${c}</span>`).join('');
+      }
+
+      if (selectedPlaceId) {
+        document.getElementById('syncBtn').classList.remove('hidden');
       }
 
       setStep(3);
