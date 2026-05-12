@@ -1490,12 +1490,20 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
 
     function evidenceHtml(quotes, accentColor) {
       if (!quotes?.length) return '';
+      const seenTexts = new Set();
       const cards = quotes.map(q => {
         const rev = findReview(q);
-        return rev
-          ? renderReviewCard(rev, accentColor)
-          : `<blockquote class="text-white/60 text-xs italic leading-relaxed bg-white/5 rounded-xl px-4 py-3" style="border-left:3px solid ${accentColor}40">"${q}"</blockquote>`;
-      }).join('');
+        if (rev) {
+          if (seenTexts.has(rev.text)) return null; // skip duplicate review
+          seenTexts.add(rev.text);
+          return renderReviewCard(rev, accentColor);
+        }
+        // Fallback: show Claude's quote as blockquote, dedupe by quote text
+        if (seenTexts.has(q)) return null;
+        seenTexts.add(q);
+        return `<blockquote class="text-white/60 text-xs italic leading-relaxed bg-white/5 rounded-xl px-4 py-3" style="border-left:3px solid ${accentColor}40">"${q}"</blockquote>`;
+      }).filter(Boolean).join('');
+      if (!cards) return '';
       return `<div>
         <p class="text-white/30 text-xs font-semibold uppercase tracking-wider mb-2">Reviews que lo evidencian</p>
         <div class="space-y-2">${cards}</div>
