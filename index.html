@@ -3,31 +3,72 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Voz del Cliente — Hotel Intelligence</title>
+  <title>Voz del Cliente — Inteligencia Automoción</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-    * { font-family: 'Inter', sans-serif; }
-    .gradient-bg { background: linear-gradient(135deg, #1e3a5f 0%, #0f2340 100%); }
-    .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-    .fade-in { animation: fadeIn 0.4s ease-in-out; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-    .spinner { border: 3px solid rgba(255,255,255,0.2); border-top-color: #fff; border-radius: 50%; width: 22px; height: 22px; animation: spin 0.8s linear infinite; display: inline-block; }
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap');
+    * { font-family: 'DM Sans', 'Inter', sans-serif; }
+    /* ── Base palette ─────────────────────────────── */
+    :root {
+      --bg-base: #07080d;
+      --bg-surface: #0e1018;
+      --bg-card: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.08);
+      --border-strong: rgba(255,255,255,0.14);
+      --accent-hotel: #3b82f6;
+      --accent-dealer: #0099da;   /* VW electric blue */
+      --accent-dealer-bright: #00b4e6;
+      --accent-audi: #c0a060;     /* Audi gold tint */
+      --text-muted: rgba(255,255,255,0.45);
+      --text-dim: rgba(255,255,255,0.25);
+    }
+    .gradient-bg {
+      background: var(--bg-base);
+      background-image:
+        radial-gradient(ellipse 90% 60% at 50% -10%, rgba(0, 153, 218, 0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(0, 30, 80, 0.25) 0%, transparent 70%);
+    }
+    /* ── Cards ───────────────────────────────────── */
+    .glass {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+    }
+    .glass-strong {
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-strong);
+    }
+    /* ── Dealer-specific card style (sharper, premium) */
+    .dealer-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(0,153,218,0.18);
+      border-radius: 12px;
+    }
+    .dealer-card:hover { border-color: rgba(0,153,218,0.35); }
+    /* ── Animations ──────────────────────────────── */
+    .fade-in { animation: fadeIn 0.45s cubic-bezier(0.16,1,0.3,1); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    .spinner { border: 2px solid rgba(255,255,255,0.15); border-top-color: #fff; border-radius: 50%; width: 22px; height: 22px; animation: spin 0.75s linear infinite; display: inline-block; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    input, textarea, select { outline: none; transition: box-shadow 0.2s; }
-    input:focus, textarea:focus, select:focus { box-shadow: 0 0 0 2px #3b82f6; }
+    /* ── Form inputs ─────────────────────────────── */
+    input, textarea, select { outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    input:focus, textarea:focus, select:focus { box-shadow: 0 0 0 2px rgba(0,153,218,0.5); border-color: rgba(0,153,218,0.6) !important; }
+    /* ── Step dots ───────────────────────────────── */
     .step-dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; transition: all 0.3s; }
-    .step-dot.active { background: #3b82f6; color: white; }
-    .step-dot.done { background: #22c55e; color: white; }
-    .step-dot.inactive { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.4); }
-    .tab-btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; transition: all 0.2s; cursor: pointer; }
-    .tab-btn.active { background: #3b82f6; color: white; }
-    .tab-btn.inactive { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); }
-    .tab-btn.inactive:hover { background: rgba(255,255,255,0.12); }
-    .source-card { border: 2px solid transparent; border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.2s; background: rgba(255,255,255,0.05); }
-    .source-card.selected { border-color: #3b82f6; background: rgba(59,130,246,0.1); }
-    .source-card:hover { background: rgba(255,255,255,0.08); }
+    .step-dot.active { background: var(--accent-dealer); color: white; box-shadow: 0 0 12px rgba(0,153,218,0.5); }
+    .step-dot.done { background: #1aac6f; color: white; }
+    .step-dot.inactive { background: rgba(255,255,255,0.08); color: var(--text-dim); }
+    /* ── Tab buttons ─────────────────────────────── */
+    .tab-btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; transition: all 0.2s; cursor: pointer; letter-spacing: 0.01em; }
+    .tab-btn.active { background: var(--accent-dealer); color: white; }
+    .tab-btn.inactive { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.55); }
+    .tab-btn.inactive:hover { background: rgba(255,255,255,0.10); }
+    /* ── Source cards ────────────────────────────── */
+    .source-card { border: 2px solid transparent; border-radius: 10px; padding: 16px; cursor: pointer; transition: all 0.2s; background: rgba(255,255,255,0.04); }
+    .source-card.selected { border-color: var(--accent-dealer); background: rgba(0,153,218,0.08); }
+    .source-card:hover { background: rgba(255,255,255,0.07); }
     .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     #detailPanel { transition: opacity 0.2s; }
     #detailPanelInner { transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
@@ -162,35 +203,55 @@
     }
     /* ── Vertical selector ──────────────────────────── */
     .vertical-card {
-      border: 2px solid rgba(255,255,255,0.1);
-      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 16px;
       padding: 40px 32px;
       cursor: pointer;
-      transition: all 0.22s;
-      background: rgba(255,255,255,0.05);
+      transition: all 0.22s cubic-bezier(0.16,1,0.3,1);
+      background: rgba(255,255,255,0.04);
       text-align: center;
+      position: relative;
+      overflow: hidden;
     }
+    .vertical-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.22s;
+      border-radius: 16px;
+    }
+    .vertical-card.v-hotel::before { background: radial-gradient(ellipse at 50% 0%, rgba(59,130,246,0.12) 0%, transparent 70%); }
+    .vertical-card.v-dealer::before { background: radial-gradient(ellipse at 50% 0%, rgba(0,153,218,0.14) 0%, transparent 70%); }
+    .vertical-card:hover::before { opacity: 1; }
     .vertical-card:hover {
-      background: rgba(255,255,255,0.09);
-      border-color: rgba(255,255,255,0.22);
-      transform: translateY(-3px);
+      border-color: rgba(255,255,255,0.18);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
     }
-    .vertical-card.v-hotel:hover { border-color: #3b82f6; }
-    .vertical-card.v-dealer:hover { border-color: #f97316; }
+    .vertical-card.v-hotel:hover { border-color: rgba(59,130,246,0.5); }
+    .vertical-card.v-dealer:hover { border-color: rgba(0,153,218,0.5); }
     /* Dealer tag pills */
-    .dealer-tag.selected { background: #2563eb !important; color: #fff !important; }
+    .dealer-tag.selected { background: rgba(0,153,218,0.3) !important; color: #7dd8f5 !important; border-color: rgba(0,153,218,0.5) !important; }
+    /* Dealer label uppercase style */
+    .dealer-label { font-size: 11px; font-weight: 600; letter-spacing: 0.10em; text-transform: uppercase; color: var(--text-muted); }
+    /* Premium horizontal rule accent */
+    .accent-line { height: 2px; background: linear-gradient(90deg, var(--accent-dealer) 0%, transparent 100%); border-radius: 1px; }
+    /* Score badge styles */
+    .score-badge-best { background: rgba(0,153,218,0.15); border: 1px solid rgba(0,153,218,0.4); color: #7dd8f5; }
+    .score-badge-warn { background: rgba(255,160,60,0.12); border: 1px solid rgba(255,160,60,0.35); color: #fbbf60; }
   </style>
 </head>
 <body class="gradient-bg min-h-screen text-white">
 
   <!-- Header -->
-  <header class="px-6 py-5 flex items-center justify-between border-b border-white/10">
+  <header class="px-6 py-4 flex items-center justify-between" style="border-bottom: 1px solid rgba(255,255,255,0.07);">
     <div class="flex items-center gap-3">
-      <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-sm font-bold">V</div>
-      <span class="font-semibold text-lg tracking-tight">Voz del Cliente</span>
-      <span id="verticalBadge" class="text-xs text-white/40 bg-white/10 px-2 py-0.5 rounded-full">Hotel Intelligence</span>
+      <div class="w-8 h-8 rounded-sm flex items-center justify-center text-sm font-bold tracking-tight" style="background: var(--accent-dealer); letter-spacing: -0.03em;">VC</div>
+      <span class="font-semibold text-base tracking-tight">Voz del Cliente</span>
+      <span id="verticalBadge" class="text-xs px-2.5 py-0.5 rounded-sm font-medium tracking-wide" style="background: rgba(0,153,218,0.12); color: rgba(0,153,218,0.8); border: 1px solid rgba(0,153,218,0.2);">Automoción</span>
     </div>
-    <div class="text-xs text-white/40">Powered by Claude AI</div>
+    <div class="text-xs tracking-wider uppercase" style="color: var(--text-dim); letter-spacing: 0.08em;">Powered by Claude AI</div>
   </header>
 
   <main class="max-w-7xl mx-auto px-6 py-10">
@@ -199,20 +260,21 @@
     <!-- VERTICAL SELECTOR                           -->
     <!-- ═══════════════════════════════════════════ -->
     <div id="verticalSelector" class="hidden fade-in">
-      <div class="text-center mb-12 pt-6">
-        <h1 class="text-4xl font-extrabold mb-3">Bienvenido a Voz del Cliente</h1>
-        <p class="text-white/50 text-lg">¿Para qué tipo de negocio quieres analizar las opiniones?</p>
+      <div class="text-center mb-12 pt-8">
+        <p class="dealer-label mb-4" style="color: var(--accent-dealer-bright);">Inteligencia de Cliente</p>
+        <h1 class="text-4xl font-bold mb-3" style="letter-spacing: -0.02em;">Voz del Cliente</h1>
+        <p style="color: var(--text-muted);" class="text-base">Selecciona tu sector para comenzar el análisis</p>
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto mb-12">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 max-w-xl mx-auto mb-12">
         <div onclick="selectVertical('hotel')" class="vertical-card v-hotel">
-          <div class="text-6xl mb-5">🏨</div>
-          <h2 class="text-xl font-bold mb-2">Hotel</h2>
-          <p class="text-white/50 text-sm leading-relaxed">Experiencia hotelera: habitaciones, staff, F&B, instalaciones y reputación online.</p>
+          <div class="text-5xl mb-4">🏨</div>
+          <h2 class="text-lg font-semibold mb-1.5">Hotel</h2>
+          <p class="text-sm leading-relaxed" style="color: var(--text-muted);">Experiencia hotelera: habitaciones, staff, F&B, instalaciones y reputación online.</p>
         </div>
         <div onclick="selectVertical('dealer')" class="vertical-card v-dealer">
-          <div class="text-6xl mb-5">🚗</div>
-          <h2 class="text-xl font-bold mb-2">Concesionario</h2>
-          <p class="text-white/50 text-sm leading-relaxed">Venta, entrega y taller. Para redes Volkswagen, Audi y Škoda.</p>
+          <div class="text-5xl mb-4">🚗</div>
+          <h2 class="text-lg font-semibold mb-1.5">Automoción</h2>
+          <p class="text-sm leading-relaxed" style="color: var(--text-muted);">Análisis de red. Volkswagen, Audi y Škoda — venta, entrega y postventa.</p>
         </div>
       </div>
     </div>
@@ -349,21 +411,22 @@
     <div id="step1dealer" class="hidden fade-in">
       <div class="max-w-2xl mx-auto">
         <div class="text-center mb-8">
-          <h1 class="text-3xl font-extrabold mb-2">Perfil del concesionario</h1>
-          <p class="text-white/50">Cuéntanos sobre tu concesionario para personalizar el análisis</p>
+          <p class="dealer-label mb-3" style="color: var(--accent-dealer-bright);">Configuración</p>
+          <h1 class="text-3xl font-bold mb-2" style="letter-spacing: -0.02em;">Perfil del concesionario</h1>
+          <p style="color: var(--text-muted);" class="text-sm">Configura los parámetros del análisis de zona</p>
         </div>
-        <div class="glass rounded-2xl p-8 space-y-6">
+        <div class="glass rounded-xl p-8 space-y-6" style="border-color: rgba(0,153,218,0.12)">
 
           <!-- Name + Location -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-white/70 mb-2">Nombre del concesionario</label>
+              <label class="block dealer-label mb-2" style="color: var(--text-muted)">Nombre del concesionario</label>
               <input id="dealerName" type="text" placeholder="VW Caetano Las Rozas"
-                class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30" />
+                class="w-full text-white text-sm px-4 py-3" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-white/70 mb-2">Ciudad / Zona *</label>
-              <select id="dealerLocation" class="w-full bg-gray-900 border border-white/20 rounded-xl px-4 py-3 text-white">
+              <label class="block dealer-label mb-2" style="color: var(--text-muted)">Ciudad / Zona *</label>
+              <select id="dealerLocation" class="w-full text-white text-sm px-4 py-3" style="background:#0e1018;border:1px solid rgba(255,255,255,0.12);border-radius:8px;">
                 <option value="" class="bg-gray-900">Selecciona ciudad...</option>
                 <option value="A Coruña">A Coruña</option>
                 <option value="Albacete">Albacete</option>
@@ -425,36 +488,36 @@
 
           <!-- Brands -->
           <div>
-            <label class="block text-sm font-medium text-white/70 mb-3">Marcas que comercializas</label>
+            <label class="block dealer-label mb-3" style="color: var(--text-muted)">Marcas</label>
             <div class="flex flex-wrap gap-2" id="dealerBrands">
-              <button type="button" onclick="toggleDealer(this)" data-value="volkswagen" class="dealer-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">🚗 Volkswagen</button>
-              <button type="button" onclick="toggleDealer(this)" data-value="audi" class="dealer-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">💎 Audi</button>
-              <button type="button" onclick="toggleDealer(this)" data-value="skoda" class="dealer-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">🍀 Škoda</button>
+              <button type="button" onclick="toggleDealer(this)" data-value="volkswagen" class="dealer-tag px-3.5 py-1.5 rounded-sm text-sm transition" style="background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.1);">Volkswagen</button>
+              <button type="button" onclick="toggleDealer(this)" data-value="audi" class="dealer-tag px-3.5 py-1.5 rounded-sm text-sm transition" style="background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.1);">Audi</button>
+              <button type="button" onclick="toggleDealer(this)" data-value="skoda" class="dealer-tag px-3.5 py-1.5 rounded-sm text-sm transition" style="background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.1);">Škoda</button>
             </div>
           </div>
 
           <!-- Services -->
           <div>
-            <label class="block text-sm font-medium text-white/70 mb-3">Servicios disponibles</label>
+            <label class="block dealer-label mb-3" style="color: var(--text-muted)">Servicios</label>
             <div class="flex flex-wrap gap-2" id="dealerServices">
-              <button type="button" onclick="toggleDealer(this)" data-value="venta_nueva" class="dealer-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">Venta nueva</button>
-              <button type="button" onclick="toggleDealer(this)" data-value="vehiculo_ocasion" class="dealer-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">Vehículo ocasión</button>
-              <button type="button" onclick="toggleDealer(this)" data-value="taller" class="dealer-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">Taller</button>
-              <button type="button" onclick="toggleDealer(this)" data-value="chapa_pintura" class="dealer-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">Chapa y pintura</button>
-              <button type="button" onclick="toggleDealer(this)" data-value="recambios" class="dealer-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">Recambios</button>
+              <button type="button" onclick="toggleDealer(this)" data-value="venta_nueva" class="dealer-tag px-3.5 py-1.5 rounded-sm text-sm transition" style="background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.1);">Venta nueva</button>
+              <button type="button" onclick="toggleDealer(this)" data-value="vehiculo_ocasion" class="dealer-tag px-3.5 py-1.5 rounded-sm text-sm transition" style="background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.1);">Vehículo ocasión</button>
+              <button type="button" onclick="toggleDealer(this)" data-value="taller" class="dealer-tag px-3.5 py-1.5 rounded-sm text-sm transition" style="background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.1);">Taller</button>
+              <button type="button" onclick="toggleDealer(this)" data-value="chapa_pintura" class="dealer-tag px-3.5 py-1.5 rounded-sm text-sm transition" style="background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.1);">Chapa y pintura</button>
+              <button type="button" onclick="toggleDealer(this)" data-value="recambios" class="dealer-tag px-3.5 py-1.5 rounded-sm text-sm transition" style="background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.55); border: 1px solid rgba(255,255,255,0.1);">Recambios</button>
             </div>
           </div>
 
           <!-- Director info -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-white/70 mb-2">Tu nombre</label>
+              <label class="block dealer-label mb-2" style="color: var(--text-muted)">Tu nombre</label>
               <input id="dealerDirectorName" type="text" placeholder="Ej: Carlos García"
-                class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30" />
+                class="w-full text-white text-sm px-4 py-3" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-white/70 mb-2">Tu rol</label>
-              <select id="dealerDirectorRole" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white">
+              <label class="block dealer-label mb-2" style="color: var(--text-muted)">Tu rol</label>
+              <select id="dealerDirectorRole" class="w-full text-white text-sm px-4 py-3" style="background:#0e1018;border:1px solid rgba(255,255,255,0.12);border-radius:8px;">
                 <option value="" class="bg-gray-900">Selecciona...</option>
                 <option value="gerente_general" class="bg-gray-900">Gerente General</option>
                 <option value="dir_comercial" class="bg-gray-900">Director Comercial</option>
@@ -467,7 +530,9 @@
           </div>
 
           <button onclick="goToStep2Dealer()"
-            class="w-full bg-orange-600 hover:bg-orange-500 transition rounded-xl py-4 font-semibold text-lg mt-2">
+            class="w-full transition rounded-lg py-4 font-semibold text-base mt-2 tracking-wide"
+            style="background: var(--accent-dealer); color: white; letter-spacing: 0.02em;"
+            onmouseover="this.style.background='var(--accent-dealer-bright)'" onmouseout="this.style.background='var(--accent-dealer)'">
             Descubrir zona →
           </button>
         </div>
@@ -480,20 +545,23 @@
     <div id="step2dealer" class="hidden fade-in">
       <div class="max-w-2xl mx-auto">
         <div class="text-center mb-8">
-          <h2 class="text-3xl font-extrabold mb-2">Concesionarios de la zona</h2>
-          <p class="text-white/50">Red <span id="dealerZoneBrand" class="text-orange-400 font-medium"></span> en <span id="dealerZoneCity" class="text-white font-medium"></span></p>
+          <p class="dealer-label mb-3" style="color: var(--accent-dealer-bright);">Descubrimiento de red</p>
+          <h2 class="text-3xl font-bold mb-2" style="letter-spacing: -0.02em;">Concesionarios de la zona</h2>
+          <p style="color: var(--text-muted);" class="text-sm">Red <span id="dealerZoneBrand" class="font-semibold" style="color: var(--accent-dealer-bright)"></span> en <span id="dealerZoneCity" class="text-white font-semibold"></span></p>
         </div>
-        <div class="glass rounded-2xl p-6">
+        <div class="glass rounded-xl p-6" style="border-color: rgba(0,153,218,0.12)">
           <div id="dealerZoneList" class="space-y-2 mb-4">
             <div class="flex items-center justify-center py-10 gap-3">
-              <div class="spinner" style="width:22px;height:22px;border-width:2px;border-top-color:#fb923c"></div>
-              <span class="text-white/50 text-sm">Buscando concesionarios...</span>
+              <div class="spinner" style="width:22px;height:22px;border-width:2px;border-top-color:var(--accent-dealer)"></div>
+              <span class="text-sm" style="color: var(--text-muted)">Buscando concesionarios...</span>
             </div>
           </div>
-          <div class="flex gap-3 pt-2 border-t border-white/10">
-            <button onclick="goToStep1Dealer()" class="flex-1 bg-white/10 hover:bg-white/15 transition rounded-xl py-3.5 font-medium">← Atrás</button>
+          <div class="flex gap-3 pt-2" style="border-top: 1px solid rgba(255,255,255,0.07)">
+            <button onclick="goToStep1Dealer()" class="flex-1 transition rounded-lg py-3.5 font-medium text-sm" style="background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.7);" onmouseover="this.style.background='rgba(255,255,255,0.11)'" onmouseout="this.style.background='rgba(255,255,255,0.07)'">← Atrás</button>
             <button id="analyzeZoneBtn" onclick="analyzeZone()" disabled
-              class="flex-2 flex-grow bg-orange-600 hover:bg-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition rounded-xl py-3.5 font-semibold flex items-center justify-center gap-2">
+              class="flex-2 flex-grow disabled:opacity-40 disabled:cursor-not-allowed transition rounded-lg py-3.5 font-semibold text-sm flex items-center justify-center gap-2"
+              style="background: var(--accent-dealer); color: white;"
+              onmouseover="if(!this.disabled)this.style.background='var(--accent-dealer-bright)'" onmouseout="this.style.background='var(--accent-dealer)'">
               <span id="analyzeZoneBtnText">Analizar zona completa</span>
               <div id="analyzeZoneSpinner" class="spinner hidden" style="width:18px;height:18px;border-width:2px"></div>
             </button>
@@ -506,48 +574,50 @@
     <!-- STEP 3 DEALER: Zone Results                 -->
     <!-- ═══════════════════════════════════════════ -->
     <div id="step3dealer" class="hidden fade-in">
-      <div class="flex items-center justify-between mb-6">
+      <!-- Results header bar -->
+      <div class="flex items-center justify-between mb-8 pb-5" style="border-bottom: 1px solid rgba(255,255,255,0.07)">
         <div>
-          <h2 class="text-2xl font-extrabold">Análisis de Red</h2>
-          <p class="text-white/50 text-sm mt-0.5"><span id="zoneResultBrand"></span> · <span id="zoneResultCity"></span></p>
+          <p class="dealer-label mb-1.5" style="color: var(--accent-dealer-bright);">Análisis de Red</p>
+          <h2 class="text-2xl font-bold" style="letter-spacing: -0.02em;"><span id="zoneResultBrand"></span> · <span id="zoneResultCity"></span></h2>
         </div>
-        <button onclick="goToStep1Dealer()" class="text-sm bg-white/10 hover:bg-white/15 transition rounded-xl px-4 py-2">← Nueva zona</button>
+        <button onclick="goToStep1Dealer()" class="text-xs transition rounded-lg px-4 py-2 tracking-wide font-medium" style="background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.6);" onmouseover="this.style.background='rgba(255,255,255,0.11)'" onmouseout="this.style.background='rgba(255,255,255,0.07)'">← Nueva zona</button>
       </div>
 
       <!-- Zone score + summary -->
-      <div class="glass rounded-2xl p-6 mb-6">
+      <div class="glass rounded-xl p-6 mb-5" style="border-color: rgba(0,153,218,0.15)">
         <div class="flex items-center gap-6">
           <div class="text-center shrink-0">
-            <div id="zoneScoreNum" class="text-5xl font-black text-orange-400">—</div>
-            <div class="text-xs text-white/40 mt-1">Score de Zona</div>
+            <div id="zoneScoreNum" class="text-5xl font-bold" style="color: var(--accent-dealer-bright); letter-spacing: -0.03em;">—</div>
+            <div class="dealer-label mt-1.5" style="color: var(--text-muted)">Score de Zona</div>
           </div>
+          <div class="w-px h-12 self-center" style="background: rgba(255,255,255,0.08)"></div>
           <div>
-            <div id="zoneSummaryText" class="text-white/70 text-sm leading-relaxed"></div>
+            <div id="zoneSummaryText" class="text-sm leading-relaxed" style="color: rgba(255,255,255,0.65)"></div>
           </div>
         </div>
       </div>
 
       <!-- Dealer ranking -->
-      <div class="glass rounded-2xl p-6 mb-6">
-        <h3 class="text-base font-semibold mb-4">🏆 Ranking de concesionarios</h3>
+      <div class="glass rounded-xl p-6 mb-5">
+        <h3 class="text-sm font-semibold mb-4 dealer-label" style="color: var(--text-muted)">Ranking de concesionarios</h3>
         <div id="dealerRankingList" class="space-y-3"></div>
       </div>
 
       <!-- Zone patterns -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        <div class="glass rounded-2xl p-5">
-          <h4 class="text-sm font-semibold text-green-400 mb-3">✓ Fortalezas de zona</h4>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+        <div class="glass rounded-xl p-5">
+          <h4 class="dealer-label mb-3" style="color: #34d399">✓ Fortalezas de zona</h4>
           <div id="zoneStrengthsList" class="space-y-2"></div>
         </div>
-        <div class="glass rounded-2xl p-5">
-          <h4 class="text-sm font-semibold text-orange-400 mb-3">↑ Áreas de mejora</h4>
+        <div class="glass rounded-xl p-5">
+          <h4 class="dealer-label mb-3" style="color: var(--accent-dealer-bright)">↑ Áreas de mejora</h4>
           <div id="zoneImprovementsList" class="space-y-2"></div>
         </div>
       </div>
 
       <!-- Zone alerts -->
-      <div id="zoneAlertsSection" class="glass rounded-2xl p-6 hidden">
-        <h3 class="text-base font-semibold mb-4">🚨 Alertas de zona</h3>
+      <div id="zoneAlertsSection" class="glass rounded-xl p-6 hidden" style="border-color: rgba(255,100,60,0.15)">
+        <h3 class="dealer-label mb-4" style="color: #f87171">⚠ Alertas de zona</h3>
         <div id="zoneAlertsList" class="space-y-3"></div>
       </div>
     </div>
@@ -601,9 +671,9 @@
               <div class="flex items-center justify-between mb-2">
                 <span class="text-xs text-white/50">Descubrir concesionarios de la zona (30 km)</span>
                 <button onclick="discoverZone()" id="discoverZoneBtn"
-                  class="flex items-center gap-1.5 text-xs bg-orange-600/20 border border-orange-500/30 hover:bg-orange-600/30 transition rounded-lg px-3 py-1.5 text-orange-300">
+                  class="flex items-center gap-1.5 text-xs transition rounded-lg px-3 py-1.5" style="background:rgba(0,153,218,0.15);border:1px solid rgba(0,153,218,0.3);color:rgba(0,180,230,0.9)">
                   <span id="discoverZoneBtnText">📍 Descubrir zona</span>
-                  <div id="discoverZoneSpinner" class="spinner hidden" style="width:13px;height:13px;border-width:2px;border-top-color:#fb923c"></div>
+                  <div id="discoverZoneSpinner" class="spinner hidden" style="width:13px;height:13px;border-width:2px;border-top-color:#00b4e6"></div>
                 </button>
               </div>
               <div id="zoneResultsList" class="hidden space-y-1.5 mt-2 max-h-48 overflow-y-auto"></div>
@@ -1465,7 +1535,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       currentVertical = v;
       document.getElementById('verticalSelector').classList.add('hidden');
       document.getElementById('stepIndicator').classList.remove('hidden');
-      document.getElementById('verticalBadge').textContent = v === 'dealer' ? 'Concesionario Intelligence' : 'Hotel Intelligence';
+      document.getElementById('verticalBadge').textContent = v === 'dealer' ? 'Automoción' : 'Hotelería';
       document.getElementById('label1').textContent = v === 'dealer' ? 'Perfil concesionario' : 'Perfil del hotel';
       if (v === 'dealer') {
         orgTree = JSON.parse(JSON.stringify(DEALER_ORG_TREE));
@@ -1555,15 +1625,15 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         }
 
         listEl.innerHTML = dealers.map((d, i) => `
-          <div class="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-3">
-            <span class="text-white/30 text-sm font-mono w-5 shrink-0">${i+1}</span>
+          <div class="flex items-center gap-3 px-4 py-3" style="background:rgba(255,255,255,0.04);border:1px solid rgba(0,153,218,0.12);border-radius:8px">
+            <span class="text-sm font-mono w-5 shrink-0" style="color:rgba(0,180,230,0.5)">${i+1}</span>
             <div class="flex-1 min-w-0">
               <div class="font-medium text-sm">${d.name}</div>
-              <div class="text-white/40 text-xs mt-0.5 truncate">${d.address || ''}</div>
+              <div class="text-xs mt-0.5 truncate" style="color:rgba(255,255,255,0.35)">${d.address || ''}</div>
             </div>
             <div class="text-right shrink-0">
-              <div class="text-yellow-400 text-xs font-medium">⭐ ${d.rating || 'N/A'}</div>
-              <div class="text-white/30 text-xs">${d.total_reviews || 0} reseñas</div>
+              <div class="text-xs font-medium" style="color:#facc15">⭐ ${d.rating || 'N/A'}</div>
+              <div class="text-xs" style="color:rgba(255,255,255,0.3)">${d.total_reviews || 0} reseñas</div>
             </div>
           </div>`).join('');
 
@@ -1648,42 +1718,42 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
           return `<div>
             <button onclick="document.getElementById('${qid}').classList.toggle('hidden')"
               class="w-full text-left flex items-start gap-2 text-xs text-white/70 hover:text-white/90 transition py-0.5">
-              <span class="text-orange-400 shrink-0 mt-0.5">↑</span>
+              <span class="shrink-0 mt-0.5" style="color:#00b4e6">↑</span>
               <span class="flex-1">${s.text}</span>
               ${s.quote ? '<span class="text-white/20 shrink-0">↓</span>' : ''}
             </button>
-            ${s.quote ? `<div id="${qid}" class="hidden mt-1 ml-4 bg-orange-500/10 border border-orange-500/20 rounded-lg px-3 py-1.5 text-xs text-orange-300/70 italic">"${s.quote}"</div>` : ''}
+            ${s.quote ? `<div id="${qid}" class="hidden mt-1 ml-4 rounded-lg px-3 py-1.5 text-xs italic" style="background:rgba(0,153,218,0.08);border:1px solid rgba(0,153,218,0.2);color:rgba(0,180,230,0.7)">"${s.quote}"</div>` : ''}
           </div>`;
         }).join('');
 
-        return `<div class="bg-white/5 rounded-2xl border ${needsAttention ? 'border-red-500/30' : 'border-white/8'} overflow-hidden">
+        return `<div class="overflow-hidden" style="background:rgba(255,255,255,0.04);border:1px solid ${needsAttention ? 'rgba(239,68,68,0.3)' : 'rgba(255,255,255,0.08)'};border-radius:10px;">
           <!-- Header -->
           <button onclick="document.getElementById('${uid}').classList.toggle('hidden')"
-            class="w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-white/5 transition">
+            class="w-full flex items-center gap-3 px-4 py-3.5 text-left transition" style="hover:background:rgba(255,255,255,0.05)">
             <span class="text-xl shrink-0">${medal}</span>
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
                 <span class="font-semibold text-sm">${d.name}</span>
-                ${needsAttention ? '<span class="text-xs bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded-full">⚠ Atención</span>' : ''}
-                ${i === 0 ? '<span class="text-xs bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded-full">Mejor de zona</span>' : ''}
+                ${needsAttention ? '<span class="text-xs px-1.5 py-0.5 rounded" style="background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3)">⚠ Atención</span>' : ''}
+                ${i === 0 ? '<span class="text-xs px-1.5 py-0.5 rounded" style="background:rgba(0,153,218,0.15);color:#7dd8f5;border:1px solid rgba(0,153,218,0.3)">Mejor de zona</span>' : ''}
               </div>
-              <div class="text-white/35 text-xs mt-0.5">${(d.strengths||[]).length} fortalezas · ${(d.improvements||[]).length} mejoras · clic para ver detalle</div>
+              <div class="text-xs mt-0.5" style="color:rgba(255,255,255,0.3)">${(d.strengths||[]).length} fortalezas · ${(d.improvements||[]).length} mejoras · clic para ver detalle</div>
             </div>
             <div class="text-right shrink-0">
-              <div class="${scoreColor} text-2xl font-black">${d.voc_score ?? '—'}</div>
-              <div class="text-white/30 text-xs">NPS ${d.nps_estimated >= 0 ? '+' : ''}${d.nps_estimated ?? '—'}</div>
+              <div class="${scoreColor} text-2xl font-bold" style="letter-spacing:-0.02em">${d.voc_score ?? '—'}</div>
+              <div class="text-xs" style="color:rgba(255,255,255,0.3)">NPS ${d.nps_estimated >= 0 ? '+' : ''}${d.nps_estimated ?? '—'}</div>
             </div>
           </button>
           <!-- Detail (expanded by default) -->
-          <div id="${uid}" class="border-t border-white/8 px-4 pb-4 pt-3">
+          <div id="${uid}" style="border-top:1px solid rgba(255,255,255,0.07)" class="px-4 pb-4 pt-3">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <div class="text-xs font-semibold text-green-400 mb-2 uppercase tracking-wide">Proteger ✓</div>
-                <div class="space-y-1">${strengthsHtml || '<div class="text-white/30 text-xs">Sin datos</div>'}</div>
+                <div class="text-xs font-semibold mb-2 uppercase tracking-widest" style="color:#34d399">Proteger ✓</div>
+                <div class="space-y-1">${strengthsHtml || '<div class="text-xs" style="color:rgba(255,255,255,0.3)">Sin datos</div>'}</div>
               </div>
               <div>
-                <div class="text-xs font-semibold text-orange-400 mb-2 uppercase tracking-wide">Mejorar ↑</div>
-                <div class="space-y-1">${improvementsHtml || '<div class="text-white/30 text-xs">Sin datos</div>'}</div>
+                <div class="text-xs font-semibold mb-2 uppercase tracking-widest" style="color:#00b4e6">Mejorar ↑</div>
+                <div class="space-y-1">${improvementsHtml || '<div class="text-xs" style="color:rgba(255,255,255,0.3)">Sin datos</div>'}</div>
               </div>
             </div>
           </div>
@@ -1710,7 +1780,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         || '<div class="text-white/30 text-xs">Sin datos</div>';
 
       const impEl = document.getElementById('zoneImprovementsList');
-      impEl.innerHTML = (data.zone_patterns?.improvements || []).map(s => patternItem(s, 'text-orange-400')).join('')
+      impEl.innerHTML = (data.zone_patterns?.improvements || []).map(s => patternItem(s, 'text-sky-400')).join('')
         || '<div class="text-white/30 text-xs">Sin datos</div>';
 
       // Alerts with quote
@@ -2727,7 +2797,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       // Restore vertical
       if (data.hotel.vertical === 'dealer') {
         currentVertical = 'dealer';
-        document.getElementById('verticalBadge').textContent = 'Concesionario Intelligence';
+        document.getElementById('verticalBadge').textContent = 'Automoción';
         dealerProfile = {
           name: data.hotel.name, location: data.hotel.location,
           brands: data.hotel.brands || [],
@@ -2775,7 +2845,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         // Direct dealer URL
         currentVertical = 'dealer';
         orgTree = JSON.parse(JSON.stringify(DEALER_ORG_TREE));
-        document.getElementById('verticalBadge').textContent = 'Concesionario Intelligence';
+        document.getElementById('verticalBadge').textContent = 'Automoción';
         document.getElementById('label1').textContent = 'Perfil concesionario';
         document.getElementById('step1').classList.add('hidden');
         document.getElementById('step1dealer').classList.remove('hidden');
