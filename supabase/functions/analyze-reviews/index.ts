@@ -1,4 +1,4 @@
-// analyze-reviews — v21
+// analyze-reviews — v22
 // Adds: dealer vertical (discover_zone action, automotive Claude prompt, vertical-aware analyze/sync)
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
@@ -227,10 +227,11 @@ Deno.serve(async (req: Request) => {
 
     // ── analyze_zone ──────────────────────────────────────────────────────
     if (action === "analyze_zone") {
-      const { dealers, location, brands = ["volkswagen"] } = body as {
+      const { dealers, location, brands = ["volkswagen"], services = [] } = body as {
         dealers: Array<{ place_id: string; name: string; rating?: number; total_reviews?: number }>;
         location: string;
         brands?: string[];
+        services?: string[];
       };
 
       // Fetch reviews for each dealer in parallel
@@ -249,12 +250,13 @@ Deno.serve(async (req: Request) => {
       );
 
       const brandNames = brands.map((b) => b.charAt(0).toUpperCase() + b.slice(1)).join(", ");
-      const dealersWithReviews = dealerData.filter((d) => d.reviews.length > 0);
+      const serviceContext = services.length > 0
+        ? `\nServicios clave de la red: ${services.join(", ")}.`
+        : "";
 
-      const prompt = `Eres analista de red de concesionarios ${brandNames} en ${location}. Analiza las reviews de todos los concesionarios de la zona y devuelve un análisis comparativo de red.
+      const prompt = `Eres analista de red de concesionarios ${brandNames} en ${location}.${serviceContext} Analiza las reviews de todos los concesionarios de la zona y devuelve un análisis comparativo de red.
 
-${dealerData.map((d) => `=== ${d.name} (${d.rating ?? "?"}⭐, ${d.total_reviews ?? 0} reseñas) ===
-${d.reviews.length > 0 ? d.reviews.map((r, j) => `${j + 1}. "${r}"`).join("\n") : "(sin reviews disponibles)"}`).join("\n\n")}
+${dealerData.map((d) => `=== ${d.name} (${d.rating ?? "?"}⭐, ${d.total_reviews ?? 0} reseñas) ===\n${d.reviews.length > 0 ? d.reviews.map((r, j) => `${j + 1}. "${r}"`).join("\n") : "(sin reviews disponibles)"}`).join("\n\n")}
 
 Devuelve EXCLUSIVAMENTE un JSON válido con esta estructura:
 {
@@ -262,25 +264,27 @@ Devuelve EXCLUSIVAMENTE un JSON válido con esta estructura:
   "zone_summary": "resumen ejecutivo de la red en 2-3 frases",
   "dealers": [
     {
-      "name": "nombre exacto",
+      "name": "nombre exacto del concesionario",
       "voc_score": <0-100>,
       "nps_estimated": <-100 a 100>,
       "main_strength": "principal fortaleza en una frase corta",
-      "main_issue": "principal problema en una frase corta o null si no hay"
+      "strength_quote": "cita literal de una review que demuestra esa fortaleza",
+      "main_issue": "principal problema en una frase corta, o null si no hay",
+      "issue_quote": "cita literal de una review que demuestra ese problema, o null si no hay"
     }
   ],
   "zone_patterns": {
-    "strengths": [{"text": "patrón positivo común en la zona"}],
-    "improvements": [{"text": "área de mejora común en la zona"}]
+    "strengths": [{"text": "patrón positivo común en la zona", "quote": "cita literal representativa de una review"}],
+    "improvements": [{"text": "área de mejora común en la zona", "quote": "cita literal representativa de una review"}]
   },
   "zone_alerts": [
-    {"priority": "P1|P2|P3", "title": "...", "summary": "...", "dealer": "nombre del dealer o Zona"}
+    {"priority": "P1|P2|P3", "title": "...", "summary": "...", "dealer": "nombre del dealer o Zona", "quote": "cita literal que lo evidencia"}
   ],
   "best_performer": "nombre del mejor concesionario",
   "needs_attention": ["nombre de dealers con problemas urgentes"]
 }
 
-Ordena el array dealers por voc_score descendente. Solo incluye dealers con reviews reales.`;
+Ordena dealers por voc_score descendente. Solo incluye dealers con reviews reales. Las citas deben ser fragmentos literales y breves (<80 chars) de las reviews proporcionadas.`;
 
       const analysis = await callClaude(prompt);
       return json(analysis);
