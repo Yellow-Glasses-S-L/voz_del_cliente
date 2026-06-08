@@ -212,7 +212,7 @@
         <div onclick="selectVertical('dealer')" class="vertical-card v-dealer">
           <div class="text-6xl mb-5">🚗</div>
           <h2 class="text-xl font-bold mb-2">Concesionario</h2>
-          <p class="text-white/50 text-sm leading-relaxed">Venta, entrega y taller. Para redes Volkswagen, Audi, SEAT, CUPRA y Škoda.</p>
+          <p class="text-white/50 text-sm leading-relaxed">Venta, entrega y taller. Para redes Volkswagen, Audi y Škoda.</p>
         </div>
       </div>
     </div>
@@ -363,8 +363,63 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-white/70 mb-2">Ciudad / Zona *</label>
-              <input id="dealerLocation" type="text" placeholder="Madrid, España"
-                class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30" />
+              <select id="dealerLocation" class="w-full bg-gray-900 border border-white/20 rounded-xl px-4 py-3 text-white">
+                <option value="" class="bg-gray-900">Selecciona ciudad...</option>
+                <option value="A Coruña">A Coruña</option>
+                <option value="Albacete">Albacete</option>
+                <option value="Alcalá de Henares">Alcalá de Henares</option>
+                <option value="Alcorcón">Alcorcón</option>
+                <option value="Alicante">Alicante</option>
+                <option value="Almería">Almería</option>
+                <option value="Badajoz">Badajoz</option>
+                <option value="Badalona">Badalona</option>
+                <option value="Barcelona">Barcelona</option>
+                <option value="Bilbao">Bilbao</option>
+                <option value="Burgos">Burgos</option>
+                <option value="Cáceres">Cáceres</option>
+                <option value="Cádiz">Cádiz</option>
+                <option value="Cartagena">Cartagena</option>
+                <option value="Castellón de la Plana">Castellón de la Plana</option>
+                <option value="Córdoba">Córdoba</option>
+                <option value="Dos Hermanas">Dos Hermanas</option>
+                <option value="Donostia / San Sebastián">Donostia / San Sebastián</option>
+                <option value="Elche">Elche</option>
+                <option value="Fuenlabrada">Fuenlabrada</option>
+                <option value="Getafe">Getafe</option>
+                <option value="Gijón">Gijón</option>
+                <option value="Granada">Granada</option>
+                <option value="Guadalajara">Guadalajara</option>
+                <option value="Huelva">Huelva</option>
+                <option value="Hospitalet de Llobregat">Hospitalet de Llobregat</option>
+                <option value="Jerez de la Frontera">Jerez de la Frontera</option>
+                <option value="Las Palmas de Gran Canaria">Las Palmas de Gran Canaria</option>
+                <option value="Leganés">Leganés</option>
+                <option value="León">León</option>
+                <option value="Lleida">Lleida</option>
+                <option value="Logroño">Logroño</option>
+                <option value="Lugo">Lugo</option>
+                <option value="Madrid">Madrid</option>
+                <option value="Málaga">Málaga</option>
+                <option value="Mataró">Mataró</option>
+                <option value="Móstoles">Móstoles</option>
+                <option value="Murcia">Murcia</option>
+                <option value="Ourense">Ourense</option>
+                <option value="Oviedo">Oviedo</option>
+                <option value="Palma de Mallorca">Palma de Mallorca</option>
+                <option value="Pamplona">Pamplona</option>
+                <option value="Salamanca">Salamanca</option>
+                <option value="Santa Cruz de Tenerife">Santa Cruz de Tenerife</option>
+                <option value="Santander">Santander</option>
+                <option value="Sevilla">Sevilla</option>
+                <option value="Tarragona">Tarragona</option>
+                <option value="Terrassa">Terrassa</option>
+                <option value="Toledo">Toledo</option>
+                <option value="Valencia">Valencia</option>
+                <option value="Valladolid">Valladolid</option>
+                <option value="Vigo">Vigo</option>
+                <option value="Vitoria-Gasteiz">Vitoria-Gasteiz</option>
+                <option value="Zaragoza">Zaragoza</option>
+              </select>
             </div>
           </div>
 
@@ -374,8 +429,6 @@
             <div class="flex flex-wrap gap-2" id="dealerBrands">
               <button type="button" onclick="toggleDealer(this)" data-value="volkswagen" class="dealer-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">🚗 Volkswagen</button>
               <button type="button" onclick="toggleDealer(this)" data-value="audi" class="dealer-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">💎 Audi</button>
-              <button type="button" onclick="toggleDealer(this)" data-value="seat" class="dealer-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">🇪🇸 SEAT</button>
-              <button type="button" onclick="toggleDealer(this)" data-value="cupra" class="dealer-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">⚡ CUPRA</button>
               <button type="button" onclick="toggleDealer(this)" data-value="skoda" class="dealer-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">🍀 Škoda</button>
             </div>
           </div>
@@ -1351,6 +1404,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       const name = document.getElementById('dealerName').value.trim();
       const location = document.getElementById('dealerLocation').value.trim();
       if (!name) { alert('Por favor, introduce el nombre del concesionario.'); return; }
+      if (!location) { alert('Por favor, selecciona la ciudad.'); return; }
 
       const brands = [...document.querySelectorAll('#dealerBrands .dealer-tag.selected')].map(b => b.dataset.value);
       const services = [...document.querySelectorAll('#dealerServices .dealer-tag.selected')].map(b => b.dataset.value);
