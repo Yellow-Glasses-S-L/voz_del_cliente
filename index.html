@@ -468,9 +468,87 @@
 
           <button onclick="goToStep2Dealer()"
             class="w-full bg-orange-600 hover:bg-orange-500 transition rounded-xl py-4 font-semibold text-lg mt-2">
-            Continuar → Importar reviews
+            Descubrir zona →
           </button>
         </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- STEP 2 DEALER: Zone Discovery               -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div id="step2dealer" class="hidden fade-in">
+      <div class="max-w-2xl mx-auto">
+        <div class="text-center mb-8">
+          <h2 class="text-3xl font-extrabold mb-2">Concesionarios de la zona</h2>
+          <p class="text-white/50">Red <span id="dealerZoneBrand" class="text-orange-400 font-medium"></span> en <span id="dealerZoneCity" class="text-white font-medium"></span></p>
+        </div>
+        <div class="glass rounded-2xl p-6">
+          <div id="dealerZoneList" class="space-y-2 mb-4">
+            <div class="flex items-center justify-center py-10 gap-3">
+              <div class="spinner" style="width:22px;height:22px;border-width:2px;border-top-color:#fb923c"></div>
+              <span class="text-white/50 text-sm">Buscando concesionarios...</span>
+            </div>
+          </div>
+          <div class="flex gap-3 pt-2 border-t border-white/10">
+            <button onclick="goToStep1Dealer()" class="flex-1 bg-white/10 hover:bg-white/15 transition rounded-xl py-3.5 font-medium">← Atrás</button>
+            <button id="analyzeZoneBtn" onclick="analyzeZone()" disabled
+              class="flex-2 flex-grow bg-orange-600 hover:bg-orange-500 disabled:opacity-50 disabled:cursor-not-allowed transition rounded-xl py-3.5 font-semibold flex items-center justify-center gap-2">
+              <span id="analyzeZoneBtnText">Analizar zona completa</span>
+              <div id="analyzeZoneSpinner" class="spinner hidden" style="width:18px;height:18px;border-width:2px"></div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- STEP 3 DEALER: Zone Results                 -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div id="step3dealer" class="hidden fade-in">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-2xl font-extrabold">Análisis de Red</h2>
+          <p class="text-white/50 text-sm mt-0.5"><span id="zoneResultBrand"></span> · <span id="zoneResultCity"></span></p>
+        </div>
+        <button onclick="goToStep1Dealer()" class="text-sm bg-white/10 hover:bg-white/15 transition rounded-xl px-4 py-2">← Nueva zona</button>
+      </div>
+
+      <!-- Zone score + summary -->
+      <div class="glass rounded-2xl p-6 mb-6">
+        <div class="flex items-center gap-6">
+          <div class="text-center shrink-0">
+            <div id="zoneScoreNum" class="text-5xl font-black text-orange-400">—</div>
+            <div class="text-xs text-white/40 mt-1">Score de Zona</div>
+          </div>
+          <div>
+            <div id="zoneSummaryText" class="text-white/70 text-sm leading-relaxed"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dealer ranking -->
+      <div class="glass rounded-2xl p-6 mb-6">
+        <h3 class="text-base font-semibold mb-4">🏆 Ranking de concesionarios</h3>
+        <div id="dealerRankingList" class="space-y-3"></div>
+      </div>
+
+      <!-- Zone patterns -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        <div class="glass rounded-2xl p-5">
+          <h4 class="text-sm font-semibold text-green-400 mb-3">✓ Fortalezas de zona</h4>
+          <div id="zoneStrengthsList" class="space-y-2"></div>
+        </div>
+        <div class="glass rounded-2xl p-5">
+          <h4 class="text-sm font-semibold text-orange-400 mb-3">↑ Áreas de mejora</h4>
+          <div id="zoneImprovementsList" class="space-y-2"></div>
+        </div>
+      </div>
+
+      <!-- Zone alerts -->
+      <div id="zoneAlertsSection" class="glass rounded-2xl p-6 hidden">
+        <h3 class="text-base font-semibold mb-4">🚨 Alertas de zona</h3>
+        <div id="zoneAlertsList" class="space-y-3"></div>
       </div>
     </div>
 
@@ -1410,14 +1488,15 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       const services = [...document.querySelectorAll('#dealerServices .dealer-tag.selected')].map(b => b.dataset.value);
 
       dealerProfile = {
-        name, location,
+        name: name || location,
+        location,
         brands: brands.length ? brands : ['volkswagen'],
         services,
         director: document.getElementById('dealerDirectorName').value.trim(),
         role: document.getElementById('dealerDirectorRole').value,
       };
       hotelProfile = {
-        name, location,
+        name: dealerProfile.name, location,
         stars: '', type: 'concesionario',
         director: dealerProfile.director,
         role: dealerProfile.role,
@@ -1426,14 +1505,184 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         services: dealerProfile.services,
       };
 
-      document.getElementById('hotelNameStep2').textContent = name;
-      document.getElementById('googleSearchLabel').textContent = 'Buscar tu concesionario en Google';
-      document.getElementById('googleSearchQuery').value = name + (location ? ' ' + location : '');
-      document.getElementById('zoneDiscoverySection').classList.remove('hidden');
-
+      // Show dealer zone step
+      const brandLabel = dealerProfile.brands.map(b => b.charAt(0).toUpperCase()+b.slice(1)).join(' + ');
+      document.getElementById('dealerZoneBrand').textContent = brandLabel;
+      document.getElementById('dealerZoneCity').textContent = location;
       document.getElementById('step1dealer').classList.add('hidden');
-      document.getElementById('step2').classList.remove('hidden');
-      setStep(2);
+      document.getElementById('step2dealer').classList.remove('hidden');
+
+      // Update step dots
+      [1,2,3].forEach(i => {
+        const dot = document.getElementById(`dot${i}`);
+        const label = document.getElementById(`label${i}`);
+        if (i === 1) { dot.className = 'step-dot done'; dot.textContent = '✓'; }
+        else if (i === 2) { dot.className = 'step-dot active'; dot.textContent = '2'; }
+        else { dot.className = 'step-dot inactive'; dot.textContent = '3'; }
+        if (label) label.className = `text-sm hidden sm:block ${i === 2 ? 'text-white/70 font-medium' : i < 2 ? 'text-white/50' : 'text-white/30'}`;
+      });
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      discoverZoneAuto();
+    }
+
+    // ── Zone auto-discovery ───────────────────────────
+    async function discoverZoneAuto() {
+      const listEl = document.getElementById('dealerZoneList');
+      const analyzeBtn = document.getElementById('analyzeZoneBtn');
+      analyzeBtn.disabled = true;
+      window._zoneDealers = [];
+
+      try {
+        const res = await fetch(FUNCTION_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'discover_zone',
+            location: dealerProfile.location,
+            brands: dealerProfile.brands || ['volkswagen'],
+          }),
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        const dealers = data.dealers || [];
+        window._zoneDealers = dealers;
+
+        if (dealers.length === 0) {
+          listEl.innerHTML = '<p class="text-white/40 text-sm py-6 text-center">No se encontraron concesionarios en esta zona.</p>';
+          return;
+        }
+
+        listEl.innerHTML = dealers.map((d, i) => `
+          <div class="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+            <span class="text-white/30 text-sm font-mono w-5 shrink-0">${i+1}</span>
+            <div class="flex-1 min-w-0">
+              <div class="font-medium text-sm">${d.name}</div>
+              <div class="text-white/40 text-xs mt-0.5 truncate">${d.address || ''}</div>
+            </div>
+            <div class="text-right shrink-0">
+              <div class="text-yellow-400 text-xs font-medium">⭐ ${d.rating || 'N/A'}</div>
+              <div class="text-white/30 text-xs">${d.total_reviews || 0} reseñas</div>
+            </div>
+          </div>`).join('');
+
+        analyzeBtn.disabled = false;
+      } catch (err) {
+        listEl.innerHTML = `<p class="text-red-400 text-sm py-4 text-center">Error: ${err.message}</p>`;
+      }
+    }
+
+    // ── Analyze entire zone ───────────────────────────
+    async function analyzeZone() {
+      const btn = document.getElementById('analyzeZoneBtn');
+      const spinner = document.getElementById('analyzeZoneSpinner');
+      const text = document.getElementById('analyzeZoneBtnText');
+      const dealers = window._zoneDealers || [];
+      if (!dealers.length) return;
+
+      btn.disabled = true;
+      spinner.classList.remove('hidden');
+      text.textContent = 'Analizando zona...';
+
+      try {
+        const res = await fetch(FUNCTION_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'analyze_zone',
+            dealers: dealers.slice(0, 6).map(d => ({ place_id: d.place_id, name: d.name, rating: d.rating, total_reviews: d.total_reviews })),
+            location: dealerProfile.location,
+            brands: dealerProfile.brands || ['volkswagen'],
+          }),
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        renderZoneResults(data);
+      } catch (err) {
+        alert(`Error al analizar zona: ${err.message}`);
+      } finally {
+        btn.disabled = false;
+        spinner.classList.add('hidden');
+        text.textContent = 'Analizar zona completa';
+      }
+    }
+
+    // ── Render zone results ───────────────────────────
+    function renderZoneResults(data) {
+      document.getElementById('step2dealer').classList.add('hidden');
+      document.getElementById('step3dealer').classList.remove('hidden');
+
+      const brandLabel = (dealerProfile.brands || []).map(b => b.charAt(0).toUpperCase()+b.slice(1)).join(' + ');
+      document.getElementById('zoneResultBrand').textContent = brandLabel;
+      document.getElementById('zoneResultCity').textContent = dealerProfile.location;
+      document.getElementById('zoneScoreNum').textContent = data.zone_score ?? '—';
+      document.getElementById('zoneSummaryText').textContent = data.zone_summary || '';
+
+      // Dealer ranking
+      const rankEl = document.getElementById('dealerRankingList');
+      const dealers = data.dealers || [];
+      rankEl.innerHTML = dealers.map((d, i) => {
+        const color = i === 0 ? 'text-yellow-400' : i === 1 ? 'text-white/60' : i === 2 ? 'text-orange-400' : 'text-white/30';
+        const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`;
+        const scoreColor = d.voc_score >= 75 ? 'text-green-400' : d.voc_score >= 50 ? 'text-yellow-400' : 'text-red-400';
+        const needsAttention = (data.needs_attention || []).includes(d.name);
+        return `<div class="flex items-start gap-3 bg-white/5 rounded-xl px-4 py-3 ${needsAttention ? 'border border-red-500/30' : 'border border-white/5'}">
+          <span class="text-lg mt-0.5 shrink-0">${medal}</span>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-0.5">
+              <span class="font-medium text-sm">${d.name}</span>
+              ${needsAttention ? '<span class="text-xs bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded">Atención</span>' : ''}
+            </div>
+            ${d.main_strength ? `<div class="text-white/50 text-xs">✓ ${d.main_strength}</div>` : ''}
+            ${d.main_issue ? `<div class="text-orange-400/70 text-xs mt-0.5">↑ ${d.main_issue}</div>` : ''}
+          </div>
+          <div class="text-right shrink-0">
+            <div class="${scoreColor} text-lg font-bold">${d.voc_score ?? '—'}</div>
+            <div class="text-white/30 text-xs">NPS ${d.nps_estimated >= 0 ? '+' : ''}${d.nps_estimated ?? '—'}</div>
+          </div>
+        </div>`;
+      }).join('');
+
+      // Strengths
+      const strEl = document.getElementById('zoneStrengthsList');
+      strEl.innerHTML = (data.zone_patterns?.strengths || []).map(s =>
+        `<div class="text-sm text-white/70">${s.text || s}</div>`
+      ).join('') || '<div class="text-white/30 text-xs">Sin datos</div>';
+
+      // Improvements
+      const impEl = document.getElementById('zoneImprovementsList');
+      impEl.innerHTML = (data.zone_patterns?.improvements || []).map(s =>
+        `<div class="text-sm text-white/70">${s.text || s}</div>`
+      ).join('') || '<div class="text-white/30 text-xs">Sin datos</div>';
+
+      // Alerts
+      const alerts = data.zone_alerts || [];
+      if (alerts.length) {
+        document.getElementById('zoneAlertsSection').classList.remove('hidden');
+        const priorityColor = { P1: 'border-red-500/40 bg-red-500/10', P2: 'border-orange-500/40 bg-orange-500/10', P3: 'border-yellow-500/30 bg-yellow-500/5' };
+        document.getElementById('zoneAlertsList').innerHTML = alerts.map(a =>
+          `<div class="border ${priorityColor[a.priority] || 'border-white/10'} rounded-xl px-4 py-3">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-xs font-bold px-2 py-0.5 rounded bg-white/10">${a.priority}</span>
+              <span class="font-medium text-sm">${a.title}</span>
+              <span class="text-white/40 text-xs ml-auto">${a.dealer || ''}</span>
+            </div>
+            <div class="text-white/60 text-xs">${a.summary}</div>
+          </div>`
+        ).join('');
+      }
+
+      // Update step dots
+      [1,2,3].forEach(i => {
+        const dot = document.getElementById(`dot${i}`);
+        const label = document.getElementById(`label${i}`);
+        dot.className = i <= 3 ? 'step-dot done' : 'step-dot inactive';
+        dot.textContent = '✓';
+        if (label) label.className = 'text-sm hidden sm:block text-white/50';
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function goToNewAnalysis() {
@@ -1447,6 +1696,8 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
     function goToStep1Dealer() {
       document.getElementById('step2').classList.add('hidden');
       document.getElementById('step3').classList.add('hidden');
+      document.getElementById('step2dealer').classList.add('hidden');
+      document.getElementById('step3dealer').classList.add('hidden');
       document.getElementById('step1').classList.add('hidden');
       document.getElementById('step1dealer').classList.remove('hidden');
       const dots = [1,2,3];
