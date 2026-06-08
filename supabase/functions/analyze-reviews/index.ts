@@ -5,6 +5,11 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const ANTHROPIC_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
 const GOOGLE_KEY    = Deno.env.get("GOOGLE_PLACES_API_KEY")!;
+// Gemini handles audio (Claude doesn't accept audio input). Prefer a dedicated
+// GEMINI_API_KEY secret; fall back to the Google Cloud key if the Generative
+// Language API is enabled on that project.
+const GEMINI_KEY    = Deno.env.get("GEMINI_API_KEY") ?? GOOGLE_KEY;
+const GEMINI_MODEL  = Deno.env.get("GEMINI_MODEL") ?? "gemini-2.0-flash";
 const SUPA_URL      = Deno.env.get("SUPABASE_URL")!;
 const SUPA_SVC      = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
@@ -49,6 +54,53 @@ async function callClaude(prompt: string): Promise<unknown> {
   const text: string = d.content?.[0]?.text ?? "";
   const m = text.match(/\{[\s\S]*\}/);
   if (!m) throw new Error("No JSON in Claude response");
+  return JSON.parse(m[0]);
+}
+
+// Transcribe + summarize an audio note via Gemini (accepts inline audio).
+async function summarizeAudio(
+  audioBase64: string,
+  mimeType: string,
+  context: string,
+): Promise<Record<string, unknown>> {
+  const prompt = `Eres un asistente que procesa notas de voz y llamadas de clientes para un sistema de "Voz del Cliente".
+Escucha el audio adjunto y devuelve EXCLUSIVAMENTE un JSON válido (sin texto antes ni después) con esta estructura:
+{
+  "language": "código ISO del idioma hablado (es, en, ...)",
+  "transcript": "transcripción literal y completa del audio",
+  "summary": "resumen ejecutivo en español, 2-4 frases",
+  "key_points": ["punto clave 1", "punto clave 2"],
+  "sentiment": "positivo|neutro|negativo",
+  "topics": ["tema 1", "tema 2"],
+  "action_items": ["acción o seguimiento sugerido 1"]
+}
+Reglas: el resumen, key_points, topics y action_items SIEMPRE en español aunque el audio esté en otro idioma. La transcripción en el idioma original. Si el audio no contiene voz, devuelve transcript:"" y un summary que lo indique, con arrays vacíos.${context ? `\nContexto adicional aportado por el usuario: ${context}` : ""}`;
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_KEY}`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { text: prompt },
+            { inline_data: { mime_type: mimeType, data: audioBase64 } },
+          ],
+        }],
+        generationConfig: { temperature: 0.2, responseMimeType: "application/json" },
+      }),
+    },
+  );
+
+  const d = await res.json();
+  if (!res.ok) {
+    const msg = d?.error?.message ?? `Gemini error ${res.status}`;
+    throw new Error(msg);
+  }
+  const text: string = d.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+  const m = text.match(/\{[\s\S]*\}/);
+  if (!m) throw new Error("No JSON in Gemini response");
   return JSON.parse(m[0]);
 }
 
@@ -236,6 +288,16 @@ Deno.serve(async (req: Request) => {
         photo_url = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=1200&photo_reference=${place.photos[0].photo_reference}&key=${GOOGLE_KEY}`;
       }
       return json({ reviews, reviewsData, photo_url, logo_url: place.icon ?? null, total_reviews: place.user_ratings_total, rating: place.rating, name: place.name });
+    }
+
+    // ── summarize_audio ──────────────────────────────────────────────────────
+    if (action === "summarize_audio") {
+      const { audio_base64, mime_type = "audio/mp4", context = "" } = body as {
+        audio_base64?: string; mime_type?: string; context?: string;
+      };
+      if (!audio_base64) return json({ error: "Missing audio_base64" }, 400);
+      const result = await summarizeAudio(audio_base64, mime_type, context);
+      return json(result);
     }
 
     // ── analyze ────────────────────────────────────────────────────────────

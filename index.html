@@ -190,7 +190,12 @@
       <span class="font-semibold text-lg tracking-tight">Voz del Cliente</span>
       <span id="verticalBadge" class="text-xs text-white/40 bg-white/10 px-2 py-0.5 rounded-full">Hotel Intelligence</span>
     </div>
-    <div class="text-xs text-white/40">Powered by Claude AI</div>
+    <div class="flex items-center gap-4">
+      <button onclick="openAudioModal()" class="text-xs text-white/70 hover:text-white transition bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+        🎙️ Resumen de audio
+      </button>
+      <div class="text-xs text-white/40">Powered by Claude AI</div>
+    </div>
   </header>
 
   <main class="max-w-7xl mx-auto px-6 py-10">
@@ -2490,6 +2495,115 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       if (s >= 55) return { text: 'Mejorable ⚠️', color: 'text-yellow-400' };
       return { text: 'Crítico 🔴', color: 'text-red-400' };
     }
+
+    // ── Audio Summary ────────────────────────────────
+    function openAudioModal() {
+      document.getElementById('audioModal').classList.remove('hidden');
+    }
+    function closeAudioModal(event) {
+      if (event && event.target.closest('#audioModal > div:last-child')) return;
+      document.getElementById('audioModal').classList.add('hidden');
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]); // strip data URL prefix
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    const SENTIMENT_STYLE = {
+      positivo: { text: 'Positivo 🟢', color: 'text-green-400' },
+      neutro:   { text: 'Neutro ⚪',  color: 'text-white/70' },
+      negativo: { text: 'Negativo 🔴', color: 'text-red-400' },
+    };
+
+    async function summarizeAudio() {
+      const fileInput = document.getElementById('audioFile');
+      const errBox = document.getElementById('audioError');
+      const resultBox = document.getElementById('audioResult');
+      const btn = document.getElementById('audioSubmitBtn');
+      errBox.classList.add('hidden');
+      resultBox.classList.add('hidden');
+
+      const file = fileInput.files[0];
+      if (!file) {
+        errBox.textContent = 'Selecciona un archivo de audio primero.';
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      const originalLabel = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Procesando audio…';
+
+      try {
+        const audio_base64 = await fileToBase64(file);
+        const res = await fetch(FUNCTION_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'summarize_audio',
+            audio_base64,
+            mime_type: file.type || 'audio/mp4',
+            context: document.getElementById('audioContext').value.trim(),
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok || data.error) throw new Error(data.error || `Error ${res.status}`);
+        renderAudioResult(data);
+      } catch (e) {
+        errBox.textContent = 'No se pudo procesar el audio: ' + e.message;
+        errBox.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalLabel;
+      }
+    }
+
+    function renderAudioResult(d) {
+      const resultBox = document.getElementById('audioResult');
+      const esc = (s) => String(s ?? '').replace(/[&<>]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;' }[c]));
+      const sentiment = SENTIMENT_STYLE[d.sentiment] || SENTIMENT_STYLE.neutro;
+
+      const list = (arr) => (arr && arr.length)
+        ? `<ul class="list-disc list-inside space-y-1 text-sm text-white/80">${arr.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`
+        : '<p class="text-white/40 text-sm">—</p>';
+
+      const chips = (arr) => (arr && arr.length)
+        ? `<div class="flex flex-wrap gap-2">${arr.map(t => `<span class="text-xs bg-white/10 px-2.5 py-1 rounded-full">${esc(t)}</span>`).join('')}</div>`
+        : '<p class="text-white/40 text-sm">—</p>';
+
+      resultBox.innerHTML = `
+        <div class="flex items-center justify-between border-t border-white/10 pt-4">
+          <span class="text-sm font-semibold">Resultado</span>
+          <span class="text-sm font-semibold ${sentiment.color}">${sentiment.text}</span>
+        </div>
+        <div>
+          <div class="text-xs uppercase tracking-wide text-white/40 mb-1.5">Resumen</div>
+          <p class="text-sm text-white/90">${esc(d.summary)}</p>
+        </div>
+        <div>
+          <div class="text-xs uppercase tracking-wide text-white/40 mb-1.5">Puntos clave</div>
+          ${list(d.key_points)}
+        </div>
+        <div>
+          <div class="text-xs uppercase tracking-wide text-white/40 mb-1.5">Acciones sugeridas</div>
+          ${list(d.action_items)}
+        </div>
+        <div>
+          <div class="text-xs uppercase tracking-wide text-white/40 mb-1.5">Temas</div>
+          ${chips(d.topics)}
+        </div>
+        <details class="group">
+          <summary class="text-xs uppercase tracking-wide text-white/40 cursor-pointer hover:text-white/70 transition">Transcripción${d.language ? ` (${esc(d.language)})` : ''}</summary>
+          <p class="text-sm text-white/70 mt-2 whitespace-pre-wrap">${esc(d.transcript) || '<span class="text-white/40">Sin voz detectada</span>'}</p>
+        </details>
+      `;
+      resultBox.classList.remove('hidden');
+    }
   </script>
 
   <!-- ── Detail Panel (slide-over) ── -->
@@ -2501,6 +2615,41 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         <button onclick="closeDetailPanel()" class="text-white/40 hover:text-white transition w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-lg">✕</button>
       </div>
       <div id="panelBody" class="p-6 space-y-5"></div>
+    </div>
+  </div>
+
+  <!-- ── Audio Summary Modal ── -->
+  <div id="audioModal" class="fixed inset-0 z-50 hidden" onclick="closeAudioModal(event)">
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+    <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl"
+         style="background:linear-gradient(160deg,#1a3558 0%,#0f2340 100%);border:1px solid rgba(255,255,255,0.1)">
+      <div class="sticky top-0 flex items-center justify-between px-6 py-4 border-b border-white/10 z-10" style="background:rgba(15,35,64,0.9);backdrop-filter:blur(12px)">
+        <div class="font-semibold text-sm">🎙️ Resumen de audio del cliente</div>
+        <button onclick="closeAudioModal()" class="text-white/40 hover:text-white transition w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/10 text-lg">✕</button>
+      </div>
+      <div class="p-6 space-y-5">
+        <p class="text-white/50 text-sm">Sube una nota de voz o grabación (WhatsApp, llamada…) y obtén su transcripción y un resumen accionable.</p>
+
+        <div>
+          <label class="block text-sm font-medium text-white/70 mb-2">Archivo de audio</label>
+          <input id="audioFile" type="file" accept="audio/*"
+            class="w-full text-sm text-white/80 bg-white/10 border border-white/20 rounded-xl px-4 py-3 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-blue-500 file:text-white file:text-sm file:cursor-pointer" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-white/70 mb-2">Contexto (opcional)</label>
+          <input id="audioContext" type="text" placeholder="p.ej. Reclamación de un cliente sobre la entrega del vehículo"
+            class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30 text-sm" />
+        </div>
+
+        <button id="audioSubmitBtn" onclick="summarizeAudio()"
+          class="w-full bg-blue-500 hover:bg-blue-600 transition rounded-xl px-4 py-3 font-semibold text-sm">
+          Transcribir y resumir
+        </button>
+
+        <div id="audioError" class="hidden text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3"></div>
+        <div id="audioResult" class="hidden space-y-4"></div>
+      </div>
     </div>
   </div>
 
