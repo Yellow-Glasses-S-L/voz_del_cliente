@@ -1,4 +1,4 @@
-// analyze-reviews — v23
+// analyze-reviews — v24
 // Adds: dealer vertical (discover_zone action, automotive Claude prompt, vertical-aware analyze/sync)
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
@@ -41,7 +41,7 @@ async function callClaude(prompt: string): Promise<unknown> {
     },
     body: JSON.stringify({
       model: "claude-sonnet-4-5",
-      max_tokens: 5000,
+      max_tokens: 8000,
       messages: [{ role: "user", content: prompt }],
     }),
   });
@@ -215,7 +215,7 @@ Deno.serve(async (req: Request) => {
       const res = await fetch(url);
       const data = await res.json();
 
-      const dealers = (data.results ?? []).slice(0, 12).map((p: Record<string, unknown>) => ({
+      const dealers = (data.results ?? []).map((p: Record<string, unknown>) => ({
         place_id: p.place_id,
         name: p.name,
         address: p.formatted_address,
@@ -236,7 +236,7 @@ Deno.serve(async (req: Request) => {
 
       // Fetch reviews for each dealer in parallel
       const dealerData = await Promise.all(
-        dealers.slice(0, 6).map(async (d) => {
+        dealers.map(async (d) => {
           try {
             const place = await getPlaceDetails(d.place_id);
             const reviews = (place.reviews ?? []).map((r: Record<string, unknown>) =>

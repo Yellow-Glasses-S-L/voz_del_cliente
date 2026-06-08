@@ -1591,7 +1591,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'analyze_zone',
-            dealers: dealers.slice(0, 6).map(d => ({ place_id: d.place_id, name: d.name, rating: d.rating, total_reviews: d.total_reviews })),
+            dealers: dealers.map(d => ({ place_id: d.place_id, name: d.name, rating: d.rating, total_reviews: d.total_reviews })),
             location: dealerProfile.location,
             brands: dealerProfile.brands || ['volkswagen'],
             services: dealerProfile.services || [],
