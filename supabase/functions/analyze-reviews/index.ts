@@ -1,4 +1,4 @@
-// analyze-reviews — v19
+// analyze-reviews — v20
 // Adds: dealer vertical (discover_zone action, automotive Claude prompt, vertical-aware analyze/sync)
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
@@ -204,29 +204,21 @@ Deno.serve(async (req: Request) => {
 
     // ── discover_zone ──────────────────────────────────────────────────────
     if (action === "discover_zone") {
-      const { location, radius_km = 30, brands = ["volkswagen"] } = body as {
+      const { location, brands = ["volkswagen"] } = body as {
         location: string; radius_km?: number; brands?: string[];
       };
 
-      // Geocode the location text
-      const geoUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(location)}&key=${GOOGLE_KEY}`;
-      const geoRes = await fetch(geoUrl);
-      const geoData = await geoRes.json();
-      const geoResult = geoData.results?.[0];
-      if (!geoResult) return json({ error: "Location not found" }, 400);
-      const { lat, lng } = geoResult.geometry.location;
-
-      // Pick brand keyword (first brand)
+      // Use textsearch (no geocoding needed — same API already enabled)
       const brandName = (brands[0] ?? "volkswagen").charAt(0).toUpperCase() + (brands[0] ?? "volkswagen").slice(1);
-      const keyword = encodeURIComponent(`concesionario ${brandName}`);
-      const nearbyUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius_km * 1000}&type=car_dealer&keyword=${keyword}&key=${GOOGLE_KEY}&language=es`;
-      const nearbyRes = await fetch(nearbyUrl);
-      const nearbyData = await nearbyRes.json();
+      const query = `concesionario ${brandName} en ${location}`;
+      const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&type=car_dealer&key=${GOOGLE_KEY}&language=es`;
+      const res = await fetch(url);
+      const data = await res.json();
 
-      const dealers = (nearbyData.results ?? []).slice(0,12).map((p: Record<string,unknown>) => ({
+      const dealers = (data.results ?? []).slice(0, 12).map((p: Record<string, unknown>) => ({
         place_id: p.place_id,
         name: p.name,
-        address: p.vicinity,
+        address: p.formatted_address,
         rating: p.rating,
         total_reviews: p.user_ratings_total,
       }));
