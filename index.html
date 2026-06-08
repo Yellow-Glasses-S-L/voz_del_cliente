@@ -160,6 +160,25 @@
       border-radius: 50%;
       border: 1.5px solid rgba(15,35,64,0.9);
     }
+    /* ── Vertical selector ──────────────────────────── */
+    .vertical-card {
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 40px 32px;
+      cursor: pointer;
+      transition: all 0.22s;
+      background: rgba(255,255,255,0.05);
+      text-align: center;
+    }
+    .vertical-card:hover {
+      background: rgba(255,255,255,0.09);
+      border-color: rgba(255,255,255,0.22);
+      transform: translateY(-3px);
+    }
+    .vertical-card.v-hotel:hover { border-color: #3b82f6; }
+    .vertical-card.v-dealer:hover { border-color: #f97316; }
+    /* Dealer tag pills */
+    .dealer-tag.selected { background: #2563eb !important; color: #fff !important; }
   </style>
 </head>
 <body class="gradient-bg min-h-screen text-white">
@@ -169,12 +188,34 @@
     <div class="flex items-center gap-3">
       <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-sm font-bold">V</div>
       <span class="font-semibold text-lg tracking-tight">Voz del Cliente</span>
-      <span class="text-xs text-white/40 bg-white/10 px-2 py-0.5 rounded-full">Hotel Intelligence</span>
+      <span id="verticalBadge" class="text-xs text-white/40 bg-white/10 px-2 py-0.5 rounded-full">Hotel Intelligence</span>
     </div>
     <div class="text-xs text-white/40">Powered by Claude AI</div>
   </header>
 
   <main class="max-w-7xl mx-auto px-6 py-10">
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- VERTICAL SELECTOR                           -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div id="verticalSelector" class="hidden fade-in">
+      <div class="text-center mb-12 pt-6">
+        <h1 class="text-4xl font-extrabold mb-3">Bienvenido a Voz del Cliente</h1>
+        <p class="text-white/50 text-lg">¿Para qué tipo de negocio quieres analizar las opiniones?</p>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto mb-12">
+        <div onclick="selectVertical('hotel')" class="vertical-card v-hotel">
+          <div class="text-6xl mb-5">🏨</div>
+          <h2 class="text-xl font-bold mb-2">Hotel</h2>
+          <p class="text-white/50 text-sm leading-relaxed">Experiencia hotelera: habitaciones, staff, F&B, instalaciones y reputación online.</p>
+        </div>
+        <div onclick="selectVertical('dealer')" class="vertical-card v-dealer">
+          <div class="text-6xl mb-5">🚗</div>
+          <h2 class="text-xl font-bold mb-2">Concesionario</h2>
+          <p class="text-white/50 text-sm leading-relaxed">Venta, entrega y taller. Para redes Volkswagen, Audi, SEAT, CUPRA y Škoda.</p>
+        </div>
+      </div>
+    </div>
 
     <!-- Step Indicator -->
     <div id="stepIndicator" class="flex items-center justify-center gap-0 mb-10">
@@ -303,6 +344,84 @@
     </div>
 
     <!-- ═══════════════════════════════════════════ -->
+    <!-- STEP 1 DEALER: Concesionario Profile        -->
+    <!-- ═══════════════════════════════════════════ -->
+    <div id="step1dealer" class="hidden fade-in">
+      <div class="max-w-2xl mx-auto">
+        <div class="text-center mb-8">
+          <h1 class="text-3xl font-extrabold mb-2">Perfil del concesionario</h1>
+          <p class="text-white/50">Cuéntanos sobre tu concesionario para personalizar el análisis</p>
+        </div>
+        <div class="glass rounded-2xl p-8 space-y-6">
+
+          <!-- Name + Location -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-white/70 mb-2">Nombre del concesionario *</label>
+              <input id="dealerName" type="text" placeholder="VW Caetano Las Rozas"
+                class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-white/70 mb-2">Ciudad / Zona *</label>
+              <input id="dealerLocation" type="text" placeholder="Madrid, España"
+                class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30" />
+            </div>
+          </div>
+
+          <!-- Brands -->
+          <div>
+            <label class="block text-sm font-medium text-white/70 mb-3">Marcas que comercializas</label>
+            <div class="flex flex-wrap gap-2" id="dealerBrands">
+              <button type="button" onclick="toggleDealer(this)" data-value="volkswagen" class="dealer-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">🚗 Volkswagen</button>
+              <button type="button" onclick="toggleDealer(this)" data-value="audi" class="dealer-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">💎 Audi</button>
+              <button type="button" onclick="toggleDealer(this)" data-value="seat" class="dealer-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">🇪🇸 SEAT</button>
+              <button type="button" onclick="toggleDealer(this)" data-value="cupra" class="dealer-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">⚡ CUPRA</button>
+              <button type="button" onclick="toggleDealer(this)" data-value="skoda" class="dealer-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">🍀 Škoda</button>
+            </div>
+          </div>
+
+          <!-- Services -->
+          <div>
+            <label class="block text-sm font-medium text-white/70 mb-3">Servicios disponibles</label>
+            <div class="flex flex-wrap gap-2" id="dealerServices">
+              <button type="button" onclick="toggleDealer(this)" data-value="venta_nueva" class="dealer-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">Venta nueva</button>
+              <button type="button" onclick="toggleDealer(this)" data-value="vehiculo_ocasion" class="dealer-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">Vehículo ocasión</button>
+              <button type="button" onclick="toggleDealer(this)" data-value="taller" class="dealer-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">Taller</button>
+              <button type="button" onclick="toggleDealer(this)" data-value="chapa_pintura" class="dealer-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">Chapa y pintura</button>
+              <button type="button" onclick="toggleDealer(this)" data-value="recambios" class="dealer-tag px-3 py-1.5 rounded-lg text-sm bg-white/10 text-white/60 hover:bg-white/15 transition">Recambios</button>
+            </div>
+          </div>
+
+          <!-- Director info -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-white/70 mb-2">Tu nombre</label>
+              <input id="dealerDirectorName" type="text" placeholder="Ej: Carlos García"
+                class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-white/70 mb-2">Tu rol</label>
+              <select id="dealerDirectorRole" class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white">
+                <option value="" class="bg-gray-900">Selecciona...</option>
+                <option value="gerente_general" class="bg-gray-900">Gerente General</option>
+                <option value="dir_comercial" class="bg-gray-900">Director Comercial</option>
+                <option value="dir_postventa" class="bg-gray-900">Director de Postventa</option>
+                <option value="dir_experiencia" class="bg-gray-900">Dir. Experiencia del Cliente</option>
+                <option value="director_zona" class="bg-gray-900">Director de Zona / Red</option>
+                <option value="otro" class="bg-gray-900">Otro</option>
+              </select>
+            </div>
+          </div>
+
+          <button onclick="goToStep2Dealer()"
+            class="w-full bg-orange-600 hover:bg-orange-500 transition rounded-xl py-4 font-semibold text-lg mt-2">
+            Continuar → Importar reviews
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ -->
     <!-- STEP 2: Import Reviews                      -->
     <!-- ═══════════════════════════════════════════ -->
     <div id="step2" class="hidden fade-in">
@@ -331,7 +450,7 @@
 
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-white/70 mb-2">Buscar hotel en Google</label>
+              <label id="googleSearchLabel" class="block text-sm font-medium text-white/70 mb-2">Buscar hotel en Google</label>
               <div class="flex gap-2">
                 <input id="googleSearchQuery" type="text" placeholder="Ej: Hotel Gran Vía Madrid"
                   class="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30" />
@@ -345,6 +464,19 @@
 
             <!-- Google results -->
             <div id="googleResults" class="hidden space-y-2 mt-2"></div>
+
+            <!-- Zone discovery (dealer only) -->
+            <div id="zoneDiscoverySection" class="hidden border-t border-white/10 pt-4">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs text-white/50">Descubrir concesionarios de la zona (30 km)</span>
+                <button onclick="discoverZone()" id="discoverZoneBtn"
+                  class="flex items-center gap-1.5 text-xs bg-orange-600/20 border border-orange-500/30 hover:bg-orange-600/30 transition rounded-lg px-3 py-1.5 text-orange-300">
+                  <span id="discoverZoneBtnText">📍 Descubrir zona</span>
+                  <div id="discoverZoneSpinner" class="spinner hidden" style="width:13px;height:13px;border-width:2px;border-top-color:#fb923c"></div>
+                </button>
+              </div>
+              <div id="zoneResultsList" class="hidden space-y-1.5 mt-2 max-h-48 overflow-y-auto"></div>
+            </div>
 
             <!-- Selected place info -->
             <div id="selectedPlaceInfo" class="hidden bg-green-500/10 border border-green-500/30 rounded-xl p-4">
@@ -410,7 +542,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
             <button onclick="runSync()" id="syncBtn" class="text-xs text-white/50 hover:text-white transition bg-white/10 px-3 py-1.5 rounded-lg flex items-center gap-1.5 hidden">
               <span id="syncBtnIcon">↻</span> Sync
             </button>
-            <button onclick="goToStep2()" class="text-xs text-white/50 hover:text-white transition bg-white/10 px-3 py-1.5 rounded-lg">← Nueva análisis</button>
+            <button onclick="goToNewAnalysis()" class="text-xs text-white/50 hover:text-white transition bg-white/10 px-3 py-1.5 rounded-lg">← Nueva análisis</button>
           </div>
         </div>
       </div>
@@ -451,6 +583,56 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
 
       <!-- TAB: DASHBOARD -->
       <div id="tab-dashboard">
+
+        <!-- DEALER KPI SECTION (visible only in dealer vertical) -->
+        <div id="dealerKPISection" class="hidden mb-6">
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Venta -->
+            <div class="glass rounded-2xl p-5 text-center">
+              <p class="text-white/40 text-xs font-semibold uppercase tracking-widest mb-3">Proceso de Venta</p>
+              <div id="kpiVentaNum" class="text-4xl font-extrabold mb-1 text-blue-400">--</div>
+              <div class="text-white/30 text-xs">/ 100</div>
+            </div>
+            <!-- Taller -->
+            <div class="glass rounded-2xl p-5 text-center">
+              <p class="text-white/40 text-xs font-semibold uppercase tracking-widest mb-3">Taller / Postventa</p>
+              <div id="kpiTallerNum" class="text-4xl font-extrabold mb-1 text-orange-400">--</div>
+              <div class="text-white/30 text-xs">/ 100</div>
+            </div>
+            <!-- Atención -->
+            <div class="glass rounded-2xl p-5 text-center">
+              <p class="text-white/40 text-xs font-semibold uppercase tracking-widest mb-3">Atención al Cliente</p>
+              <div id="kpiAtencionNum" class="text-4xl font-extrabold mb-1 text-green-400">--</div>
+              <div class="text-white/30 text-xs">/ 100</div>
+            </div>
+            <!-- Brecha Venta–Taller -->
+            <div class="glass rounded-2xl p-5">
+              <p class="text-white/40 text-xs font-semibold uppercase tracking-widest mb-3">Brecha Venta–Taller</p>
+              <div class="flex items-baseline gap-1.5 mb-3">
+                <span id="gapValue" class="text-3xl font-extrabold">--</span>
+                <span class="text-white/40 text-xs">pts</span>
+                <span id="gapBadge" class="ml-auto text-xs font-bold px-2 py-0.5 rounded-full"></span>
+              </div>
+              <div class="space-y-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-white/40 text-xs w-10 shrink-0">Venta</span>
+                  <div class="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div id="gapVentaBar" class="h-full rounded-full transition-all duration-700" style="background:#60a5fa;width:0%"></div>
+                  </div>
+                  <span id="gapVentaBarNum" class="text-white/60 text-xs font-semibold w-6 text-right">--</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-white/40 text-xs w-10 shrink-0">Taller</span>
+                  <div class="flex-1 h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div id="gapTallerBar" class="h-full rounded-full transition-all duration-700" style="background:#fb923c;width:0%"></div>
+                  </div>
+                  <span id="gapTallerBarNum" class="text-white/60 text-xs font-semibold w-6 text-right">--</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- 3-col on desktop: gauge | radar | bars -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           <!-- VOC Score -->
@@ -660,6 +842,21 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       valor: 'Valor', tecnologia: 'Tecnología', sostenibilidad: 'Sostenibilidad',
     };
 
+    const DEALER_CATEGORY_LABELS = {
+      comercial:    'Proceso de Venta',
+      entrega:      'Entrega Vehículo',
+      taller:       'Taller/Postventa',
+      atencion:     'Atención al Cliente',
+      instalaciones:'Instalaciones',
+      precio:       'Precio y Transparencia',
+      digital:      'Digitalización',
+      producto:     'Producto/Vehículo',
+    };
+
+    function getCategoryLabels() {
+      return currentVertical === 'dealer' ? DEALER_CATEGORY_LABELS : CATEGORY_LABELS;
+    }
+
     const DEMO_REVIEWS = [
       "La habitación era espaciosa y muy limpia. El personal de recepción fue excepcional, siempre con una sonrisa. La ubicación es perfecta, a dos pasos del metro. El desayuno estaba bien pero podría tener más opciones. El WiFi fue lento durante toda la estancia.",
       "Hotel con una ubicación inmejorable. Las vistas son espectaculares. Sin embargo, el precio para lo que ofrecen es elevado. El personal del restaurante tardó mucho en atendernos. La cama muy cómoda y las sábanas de calidad.",
@@ -667,6 +864,9 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       "Llegamos tarde y nos recibieron con muchísima amabilidad. La habitación perfecta, silenciosa y bien climatizada. El desayuno buffet es de los mejores que he probado en un hotel urbano. La aplicación móvil del hotel falla bastante.",
       "Muy decepcionada con la gestión de nuestra reserva. Hubo un error y tardaron 2 horas en resolverlo. Las instalaciones están algo anticuadas para el precio. El personal muy educado pero poco eficiente."
     ];
+
+    let currentVertical = 'hotel'; // 'hotel' | 'dealer'
+    let dealerProfile = { name:'', location:'', brands:[], services:[], director:'', role:'' };
 
     let selectedPlaceId = null;
     let activeTab = 'google';
@@ -726,6 +926,27 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
           children: [],
         },
       ],
+    };
+
+    const DEALER_ORG_TREE = {
+      id: 'member_gerente',
+      name: 'Gerente General',
+      role: 'Dirección',
+      dept: 'dir',
+      deptColor: '#f97316',
+      children: [
+        { id:'member_dir_comercial', name:'Dir. Comercial', role:'Ventas', dept:'ventas', deptColor:'#3b82f6',
+          children: [
+            { id:'member_ventas', name:'Equipo de Ventas', role:'', dept:'ventas', deptColor:'#3b82f6', children:[] }
+          ]
+        },
+        { id:'member_dir_postventa', name:'Dir. Postventa', role:'Taller', dept:'taller', deptColor:'#8b5cf6',
+          children: [
+            { id:'member_taller', name:'Equipo de Taller', role:'', dept:'taller', deptColor:'#8b5cf6', children:[] }
+          ]
+        },
+        { id:'member_atencion', name:'Atención al Cliente', role:'', dept:'atencion', deptColor:'#22c55e', children:[] }
+      ]
     };
 
     // ── Org Chart: semáforo computation ─────────────
@@ -1103,6 +1324,139 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       btn.classList.toggle('text-white/60');
     }
 
+    // ── Dealer tag toggle ────────────────────────────
+    function toggleDealer(btn) {
+      btn.classList.toggle('selected');
+    }
+
+    // ── Vertical selector ────────────────────────────
+    function selectVertical(v) {
+      currentVertical = v;
+      document.getElementById('verticalSelector').classList.add('hidden');
+      document.getElementById('stepIndicator').classList.remove('hidden');
+      document.getElementById('verticalBadge').textContent = v === 'dealer' ? 'Concesionario Intelligence' : 'Hotel Intelligence';
+      if (v === 'dealer') {
+        orgTree = JSON.parse(JSON.stringify(DEALER_ORG_TREE));
+        document.getElementById('step1dealer').classList.remove('hidden');
+        document.getElementById('step1').classList.add('hidden');
+      } else {
+        document.getElementById('step1').classList.remove('hidden');
+        document.getElementById('step1dealer').classList.add('hidden');
+      }
+      window.history.replaceState({}, '', `?v=${v}`);
+    }
+
+    // ── Dealer step navigation ────────────────────────
+    function goToStep2Dealer() {
+      const name = document.getElementById('dealerName').value.trim();
+      const location = document.getElementById('dealerLocation').value.trim();
+      if (!name) { alert('Por favor, introduce el nombre del concesionario.'); return; }
+
+      const brands = [...document.querySelectorAll('#dealerBrands .dealer-tag.selected')].map(b => b.dataset.value);
+      const services = [...document.querySelectorAll('#dealerServices .dealer-tag.selected')].map(b => b.dataset.value);
+
+      dealerProfile = {
+        name, location,
+        brands: brands.length ? brands : ['volkswagen'],
+        services,
+        director: document.getElementById('dealerDirectorName').value.trim(),
+        role: document.getElementById('dealerDirectorRole').value,
+      };
+      hotelProfile = {
+        name, location,
+        stars: '', type: 'concesionario',
+        director: dealerProfile.director,
+        role: dealerProfile.role,
+        competitors: [], focus: [],
+        brands: dealerProfile.brands,
+        services: dealerProfile.services,
+      };
+
+      document.getElementById('hotelNameStep2').textContent = name;
+      document.getElementById('googleSearchLabel').textContent = 'Buscar tu concesionario en Google';
+      document.getElementById('googleSearchQuery').value = name + (location ? ' ' + location : '');
+      document.getElementById('zoneDiscoverySection').classList.remove('hidden');
+
+      document.getElementById('step1dealer').classList.add('hidden');
+      document.getElementById('step2').classList.remove('hidden');
+      setStep(2);
+    }
+
+    function goToNewAnalysis() {
+      if (currentVertical === 'dealer') {
+        goToStep1Dealer();
+      } else {
+        setStep(1);
+      }
+    }
+
+    function goToStep1Dealer() {
+      document.getElementById('step2').classList.add('hidden');
+      document.getElementById('step3').classList.add('hidden');
+      document.getElementById('step1').classList.add('hidden');
+      document.getElementById('step1dealer').classList.remove('hidden');
+      const dots = [1,2,3];
+      dots.forEach(i => {
+        const dot = document.getElementById(`dot${i}`);
+        const label = document.getElementById(`label${i}`);
+        if (i === 1) { dot.className = 'step-dot active'; dot.textContent = '1'; }
+        else { dot.className = 'step-dot inactive'; dot.textContent = i; }
+        if (label) label.className = `text-sm hidden sm:block ${i === 1 ? 'text-white/70 font-medium' : 'text-white/30'}`;
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ── Zone discovery ────────────────────────────────
+    async function discoverZone() {
+      const location = dealerProfile.location || hotelProfile.location;
+      if (!location) { alert('Por favor indica la ciudad o zona en el paso anterior.'); return; }
+
+      const btn = document.getElementById('discoverZoneBtn');
+      const spinner = document.getElementById('discoverZoneSpinner');
+      const text = document.getElementById('discoverZoneBtnText');
+      btn.disabled = true;
+      spinner.classList.remove('hidden');
+      text.textContent = 'Buscando...';
+
+      try {
+        const res = await fetch(FUNCTION_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'discover_zone',
+            location,
+            brands: dealerProfile.brands || ['volkswagen'],
+            radius_km: 30,
+          }),
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        const dealers = data.dealers || [];
+        const listEl = document.getElementById('zoneResultsList');
+        if (dealers.length === 0) {
+          listEl.innerHTML = '<p class="text-white/40 text-xs py-2">No se encontraron concesionarios en la zona.</p>';
+        } else {
+          listEl.innerHTML = dealers.map(d => `
+            <div class="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-2">
+              <span class="text-yellow-400 text-xs font-medium shrink-0">⭐ ${d.rating || 'N/A'}</span>
+              <div class="flex-1 min-w-0">
+                <div class="text-sm font-medium truncate">${d.name}</div>
+                <div class="text-white/40 text-xs truncate">${d.address || ''}</div>
+              </div>
+              <span class="text-white/30 text-xs shrink-0">${d.total_reviews || 0} reseñas</span>
+            </div>`).join('');
+        }
+        listEl.classList.remove('hidden');
+      } catch (err) {
+        alert(`Error al descubrir zona: ${err.message}`);
+      } finally {
+        btn.disabled = false;
+        spinner.classList.add('hidden');
+        text.textContent = '📍 Descubrir zona';
+      }
+    }
+
     function getSelectedFocus() {
       return [...document.querySelectorAll('.focus-tag.bg-blue-600')].map(b => b.dataset.value);
     }
@@ -1132,7 +1486,10 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function goToStep1() { setStep(1); }
+    function goToStep1() {
+      if (currentVertical === 'dealer') { goToStep1Dealer(); return; }
+      setStep(1);
+    }
 
     function goToStep2() {
       const name = document.getElementById('hotelName').value.trim();
@@ -1277,10 +1634,13 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
               photo_url: hotelBranding.photo_url,
               logo_url: hotelBranding.logo_url,
               place_id: selectedPlaceId,
+              brands: dealerProfile.brands || [],
+              services: dealerProfile.services || [],
             },
             reviews,
             reviews_data: hotelReviews,
             source: sourceLabel,
+            vertical: currentVertical,
           }),
         });
         if (!res.ok) { const e = await res.json(); throw new Error(e.error || 'Error servidor'); }
@@ -1312,7 +1672,9 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       const { voc_score, categories, strengths, improvements, summary, alerts = [], insights = [], slug, nps_estimated, compliments = [] } = data;
       if (slug) currentSlug = slug;
 
-      const metaText = [hotelProfile.location, hotelProfile.stars ? hotelProfile.stars + '★' : '', hotelProfile.type, sourceLabel].filter(Boolean).join(' · ');
+      const metaText = currentVertical === 'dealer'
+        ? [(dealerProfile.brands || []).map(b => b.charAt(0).toUpperCase()+b.slice(1)).join(' · '), hotelProfile.location, sourceLabel].filter(Boolean).join(' · ')
+        : [hotelProfile.location, hotelProfile.stars ? hotelProfile.stars + '★' : '', hotelProfile.type, sourceLabel].filter(Boolean).join(' · ');
       const photo = hotelBranding.photo_url || data.photo_url || null;
       const logo = hotelBranding.logo_url || data.logo_url;
 
@@ -1361,12 +1723,13 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         options: { cutout: '78%', plugins: { legend: { display: false }, tooltip: { enabled: false } }, animation: { duration: 900 } }
       });
 
-      const keys = Object.keys(CATEGORY_LABELS);
+      const catLabels = getCategoryLabels();
+      const keys = Object.keys(catLabels);
       if (radarChartInstance) radarChartInstance.destroy();
       radarChartInstance = new Chart(document.getElementById('radarChart').getContext('2d'), {
         type: 'radar',
         data: {
-          labels: keys.map(k => CATEGORY_LABELS[k]),
+          labels: keys.map(k => catLabels[k]),
           datasets: [{ label: hotelProfile.name, data: keys.map(k => categories[k] ?? 50), backgroundColor: 'rgba(59,130,246,0.2)', borderColor: '#3b82f6', borderWidth: 2, pointBackgroundColor: '#3b82f6', pointRadius: 4 }]
         },
         options: { scales: { r: { min: 0, max: 100, ticks: { display: false }, grid: { color: 'rgba(255,255,255,0.1)' }, angleLines: { color: 'rgba(255,255,255,0.1)' }, pointLabels: { color: 'rgba(255,255,255,0.7)', font: { size: 11 } } } }, plugins: { legend: { display: false } }, animation: { duration: 800 } }
@@ -1376,8 +1739,35 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       barsEl.innerHTML = keys.map(k => {
         const s = categories[k] ?? 50;
         const c = getScoreColor(s);
-        return `<div><div class="flex justify-between text-xs mb-1"><span class="text-white/70">${CATEGORY_LABELS[k]}</span><span class="font-semibold" style="color:${c}">${s}</span></div><div class="h-1.5 bg-white/10 rounded-full overflow-hidden"><div class="h-full rounded-full" style="width:${s}%;background:${c}"></div></div></div>`;
+        return `<div><div class="flex justify-between text-xs mb-1"><span class="text-white/70">${catLabels[k]}</span><span class="font-semibold" style="color:${c}">${s}</span></div><div class="h-1.5 bg-white/10 rounded-full overflow-hidden"><div class="h-full rounded-full" style="width:${s}%;background:${c}"></div></div></div>`;
       }).join('');
+
+      // Dealer KPI section
+      const dealerSec = document.getElementById('dealerKPISection');
+      if (currentVertical === 'dealer') {
+        dealerSec.classList.remove('hidden');
+        const salesIdx = data.sales_experience_index ?? categories.comercial ?? 50;
+        const aftersalesIdx = data.aftersales_experience_index ?? categories.taller ?? 50;
+        const atencionIdx = categories.atencion ?? 50;
+        const gap = data.sale_service_gap ?? Math.abs(salesIdx - aftersalesIdx);
+        document.getElementById('kpiVentaNum').textContent = salesIdx;
+        document.getElementById('kpiVentaNum').style.color = getScoreColor(salesIdx);
+        document.getElementById('kpiTallerNum').textContent = aftersalesIdx;
+        document.getElementById('kpiTallerNum').style.color = getScoreColor(aftersalesIdx);
+        document.getElementById('kpiAtencionNum').textContent = atencionIdx;
+        document.getElementById('kpiAtencionNum').style.color = getScoreColor(atencionIdx);
+        document.getElementById('gapValue').textContent = gap;
+        const gapBadge = document.getElementById('gapBadge');
+        if (gap >= 20) { gapBadge.textContent = '🔴 Crítica'; gapBadge.style.cssText = 'background:rgba(239,68,68,0.2);color:#ef4444'; }
+        else if (gap >= 10) { gapBadge.textContent = '🟠 Alta'; gapBadge.style.cssText = 'background:rgba(249,115,22,0.2);color:#fb923c'; }
+        else { gapBadge.textContent = '🟢 Normal'; gapBadge.style.cssText = 'background:rgba(34,197,94,0.2);color:#22c55e'; }
+        document.getElementById('gapVentaBar').style.width = salesIdx + '%';
+        document.getElementById('gapVentaBarNum').textContent = salesIdx;
+        document.getElementById('gapTallerBar').style.width = aftersalesIdx + '%';
+        document.getElementById('gapTallerBarNum').textContent = aftersalesIdx;
+      } else {
+        dealerSec.classList.add('hidden');
+      }
 
       document.getElementById('strengthsList').innerHTML = strengths.map(s => {
         const text = s.text || s; const quote = s.quote || null;
@@ -1696,7 +2086,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       const current = results.find(h => h.is_current);
       if (!current) return;
       const competitors = results.filter(h => !h.is_current);
-      const keys = Object.keys(CATEGORY_LABELS);
+      const keys = Object.keys(getCategoryLabels());
 
       // Ranking position by VOC score
       const sorted = [...results].sort((a, b) => b.voc_score - a.voc_score);
@@ -1768,7 +2158,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
           <div class="bg-white/5 rounded-xl p-4 flex flex-col gap-1">
             <p class="text-xs text-white/40 uppercase tracking-wide font-semibold">Lidera en</p>
             <div class="flex flex-wrap gap-1.5 mt-2">
-              ${leadingCats.map(k => `<span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-lg">${CATEGORY_LABELS[k]}</span>`).join('')}
+              ${leadingCats.map(k => `<span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-lg">${getCategoryLabels()[k]}</span>`).join('')}
             </div>
           </div>
         `);
@@ -1782,7 +2172,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
             <div class="flex flex-col gap-2 mt-2">
               ${gaps.map(g => `
                 <div class="flex items-center justify-between text-xs">
-                  <span class="text-white/70">${CATEGORY_LABELS[g.key]}</span>
+                  <span class="text-white/70">${getCategoryLabels()[g.key]}</span>
                   <span class="text-orange-400 font-semibold">-${g.gap} pts</span>
                 </div>
               `).join('')}
@@ -1812,8 +2202,8 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       // Render competitive insights
       renderBenchmarkInsights(results);
 
-      const keys = Object.keys(CATEGORY_LABELS);
-      const labels = keys.map(k => CATEGORY_LABELS[k]);
+      const keys = Object.keys(getCategoryLabels());
+      const labels = keys.map(k => getCategoryLabels()[k]);
 
       const datasets = results.map((hotel, i) => {
         const color = BENCHMARK_COLORS[i % BENCHMARK_COLORS.length];
@@ -1922,7 +2312,10 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
               name: hotelProfile.name, location: hotelProfile.location,
               stars: hotelProfile.stars, type: hotelProfile.type,
               focus_areas: hotelProfile.focus,
+              brands: dealerProfile.brands || [],
+              services: dealerProfile.services || [],
             },
+            vertical: currentVertical,
           }),
         });
         const data = await res.json();
@@ -1961,11 +2354,25 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         name: data.hotel.name, location: data.hotel.location,
         stars: data.hotel.stars, type: data.hotel.type,
         competitors: data.hotel.competitors || [], focus: data.hotel.focus_areas || [],
+        brands: data.hotel.brands || [],
+        services: data.hotel.services || [],
       };
       hotelBranding = {
         photo_url: data.hotel.photo_url || null,
         logo_url: data.hotel.logo_url || null,
       };
+      // Restore vertical
+      if (data.hotel.vertical === 'dealer') {
+        currentVertical = 'dealer';
+        document.getElementById('verticalBadge').textContent = 'Concesionario Intelligence';
+        dealerProfile = {
+          name: data.hotel.name, location: data.hotel.location,
+          brands: data.hotel.brands || [],
+          services: data.hotel.services || [],
+          director: '', role: '',
+        };
+        orgTree = JSON.parse(JSON.stringify(DEALER_ORG_TREE));
+      }
       // Restore place_id so sync button appears
       if (data.hotel.place_id) selectedPlaceId = data.hotel.place_id;
       // Restore org chart from DB (hotel.team)
@@ -1990,8 +2397,36 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
     }
 
     // ── Init ─────────────────────────────────────────
-    const urlSlug = new URLSearchParams(window.location.search).get('h');
-    if (urlSlug) loadFromSlug(urlSlug);
+    (function init() {
+      const params = new URLSearchParams(window.location.search);
+      const urlSlug = params.get('h');
+      const urlVertical = params.get('v');
+
+      if (urlSlug) {
+        // Load saved dashboard — vertical restored inside loadFromSlug
+        loadFromSlug(urlSlug);
+        return;
+      }
+
+      if (urlVertical === 'dealer') {
+        // Direct dealer URL
+        currentVertical = 'dealer';
+        orgTree = JSON.parse(JSON.stringify(DEALER_ORG_TREE));
+        document.getElementById('verticalBadge').textContent = 'Concesionario Intelligence';
+        document.getElementById('step1').classList.add('hidden');
+        document.getElementById('step1dealer').classList.remove('hidden');
+        document.getElementById('stepIndicator').classList.remove('hidden');
+      } else if (urlVertical === 'hotel') {
+        // Direct hotel URL — default state, nothing extra needed
+        document.getElementById('stepIndicator').classList.remove('hidden');
+        document.getElementById('step1').classList.remove('hidden');
+      } else {
+        // No vertical — show selector, hide steps
+        document.getElementById('verticalSelector').classList.remove('hidden');
+        document.getElementById('stepIndicator').classList.add('hidden');
+        document.getElementById('step1').classList.add('hidden');
+      }
+    })();
 
     function getScoreColor(s) { return s >= 75 ? '#22c55e' : s >= 50 ? '#f59e0b' : '#ef4444'; }
     function getScoreLabel(s) {
