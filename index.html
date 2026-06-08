@@ -221,7 +221,7 @@
     <div id="stepIndicator" class="flex items-center justify-center gap-0 mb-10">
       <div class="flex items-center gap-2">
         <div id="dot1" class="step-dot active">1</div>
-        <span id="label1" class="text-sm text-white/70 font-medium hidden sm:block">Perfil del hotel</span>
+        <span id="label1" class="text-sm text-white/70 font-medium hidden sm:block">Perfil</span>
       </div>
       <div class="w-10 h-px bg-white/20 mx-3"></div>
       <div class="flex items-center gap-2">
@@ -1388,6 +1388,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
       document.getElementById('verticalSelector').classList.add('hidden');
       document.getElementById('stepIndicator').classList.remove('hidden');
       document.getElementById('verticalBadge').textContent = v === 'dealer' ? 'Concesionario Intelligence' : 'Hotel Intelligence';
+      document.getElementById('label1').textContent = v === 'dealer' ? 'Perfil concesionario' : 'Perfil del hotel';
       if (v === 'dealer') {
         orgTree = JSON.parse(JSON.stringify(DEALER_ORG_TREE));
         document.getElementById('step1dealer').classList.remove('hidden');
@@ -2467,6 +2468,7 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
         currentVertical = 'dealer';
         orgTree = JSON.parse(JSON.stringify(DEALER_ORG_TREE));
         document.getElementById('verticalBadge').textContent = 'Concesionario Intelligence';
+        document.getElementById('label1').textContent = 'Perfil concesionario';
         document.getElementById('step1').classList.add('hidden');
         document.getElementById('step1dealer').classList.remove('hidden');
         document.getElementById('stepIndicator').classList.remove('hidden');
