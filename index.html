@@ -357,7 +357,7 @@
           <!-- Name + Location -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-white/70 mb-2">Nombre del concesionario *</label>
+              <label class="block text-sm font-medium text-white/70 mb-2">Nombre del concesionario</label>
               <input id="dealerName" type="text" placeholder="VW Caetano Las Rozas"
                 class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30" />
             </div>
@@ -1404,7 +1404,6 @@ Ubicación perfecta en el centro. La cama era cómoda pero había bastante ruido
     function goToStep2Dealer() {
       const name = document.getElementById('dealerName').value.trim();
       const location = document.getElementById('dealerLocation').value.trim();
-      if (!name) { alert('Por favor, introduce el nombre del concesionario.'); return; }
       if (!location) { alert('Por favor, selecciona la ciudad.'); return; }
 
       const brands = [...document.querySelectorAll('#dealerBrands .dealer-tag.selected')].map(b => b.dataset.value);
