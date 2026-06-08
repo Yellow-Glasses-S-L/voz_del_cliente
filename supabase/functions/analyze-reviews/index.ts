@@ -1,4 +1,4 @@
-// analyze-reviews — v22
+// analyze-reviews — v23
 // Adds: dealer vertical (discover_zone action, automotive Claude prompt, vertical-aware analyze/sync)
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
@@ -267,15 +267,23 @@ Devuelve EXCLUSIVAMENTE un JSON válido con esta estructura:
       "name": "nombre exacto del concesionario",
       "voc_score": <0-100>,
       "nps_estimated": <-100 a 100>,
-      "main_strength": "principal fortaleza en una frase corta",
-      "strength_quote": "cita literal de una review que demuestra esa fortaleza",
-      "main_issue": "principal problema en una frase corta, o null si no hay",
-      "issue_quote": "cita literal de una review que demuestra ese problema, o null si no hay"
+      "strengths": [
+        {"text": "qué se está haciendo bien y se debe proteger", "quote": "cita literal breve (<80 chars) que lo demuestra"},
+        {"text": "segunda fortaleza", "quote": "cita literal"},
+        {"text": "tercera fortaleza", "quote": "cita literal"},
+        {"text": "cuarta fortaleza si existe", "quote": "cita literal"}
+      ],
+      "improvements": [
+        {"text": "qué se debe mejorar con urgencia", "quote": "cita literal breve (<80 chars) que lo evidencia"},
+        {"text": "segunda área de mejora", "quote": "cita literal"},
+        {"text": "tercera área de mejora", "quote": "cita literal"},
+        {"text": "cuarta área de mejora si existe", "quote": "cita literal"}
+      ]
     }
   ],
   "zone_patterns": {
-    "strengths": [{"text": "patrón positivo común en la zona", "quote": "cita literal representativa de una review"}],
-    "improvements": [{"text": "área de mejora común en la zona", "quote": "cita literal representativa de una review"}]
+    "strengths": [{"text": "patrón positivo común en la zona", "quote": "cita literal representativa"}],
+    "improvements": [{"text": "área de mejora común en la zona", "quote": "cita literal representativa"}]
   },
   "zone_alerts": [
     {"priority": "P1|P2|P3", "title": "...", "summary": "...", "dealer": "nombre del dealer o Zona", "quote": "cita literal que lo evidencia"}
@@ -284,7 +292,7 @@ Devuelve EXCLUSIVAMENTE un JSON válido con esta estructura:
   "needs_attention": ["nombre de dealers con problemas urgentes"]
 }
 
-Ordena dealers por voc_score descendente. Solo incluye dealers con reviews reales. Las citas deben ser fragmentos literales y breves (<80 chars) de las reviews proporcionadas.`;
+Ordena dealers por voc_score descendente. Solo incluye dealers con reviews reales. Devuelve mínimo 3 strengths y 3 improvements por dealer (4 si hay evidencia suficiente). Las citas deben ser fragmentos literales y breves extraídos exactamente de las reviews.`;
 
       const analysis = await callClaude(prompt);
       return json(analysis);
